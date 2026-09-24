@@ -39,6 +39,17 @@ const imageFiles = [
   "Stacked_86_M 97_10.0s_LP_20250524-232111_cleaned.jpg",
 ];
 
+const imageRatios: Record<string, number> = {
+  "Stacked_162_M 81_10.0s_IRCUT_20260422-220323_hand_processed.jpg": 833 / 1708,
+  "Stacked_184_IC 5070_10.0s_LP_20250915-221725_hand_processed.png": 899 / 1736,
+  "Stacked_185_M 101_10.0s_IRCUT_20260602-230131_hand_processed.jpg": 956 / 1237,
+  "Stacked_201_M 31_10.0s_IRCUT_20251118-191752_hand_processed.png": 373 / 664,
+  "Stacked_223_M 42_10.0s_LP_20260407-215641_hand_processed.jpg": 846 / 1814,
+  "Stacked_269_NGC 6888_10.0s_LP_20250831-224513_hand_processed.png": 858 / 1619,
+  "Stacked_419_M 51_10.0s_IRCUT_20260728-233258_hand_processed.png": 443 / 706,
+  "Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_hand_processed.png": 373 / 664,
+};
+
 const commonNames: Record<string, string> = {
   "IC 443": "Jellyfish Nebula", "M 45": "Pleiades", "IC 1318A": "Gamma Cygni Nebula", "M 92": "Messier 92",
   Vega: "Vega", "M 106": "Messier 106", "C 34": "Western Veil Nebula", "NGC 5907": "Splinter Galaxy",
@@ -140,7 +151,8 @@ const skyLocations: Record<string, SkyLocation> = {
 
 type Capture = {
   file: string; frames: number; object: string; title: string; exposure: string; filter: string;
-  date: string; fact: string; provenance: string; raDeg: number | null; decDeg: number | null; constellation: string;
+  date: string; fact: string; provenance: string; imageRatio: number;
+  raDeg: number | null; decDeg: number | null; constellation: string;
 };
 
 function parseCapture(file: string): Capture {
@@ -161,6 +173,7 @@ function parseCapture(file: string): Capture {
     date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(isoDate)),
     fact: facts[object] ?? "Every field is a time capsule: the light recorded here began its journey long before it reached the telescope.",
     provenance: treatment === "hand_processed" ? "Hand processed" : "Color corrected",
+    imageRatio: imageRatios[file] ?? 1080 / 1920,
     ...sky,
   };
 }
@@ -254,6 +267,7 @@ export default function Home() {
   const skyStyle = {
     "--from-x": `${fromPoint.x}%`, "--from-y": `${fromPoint.y}%`,
     "--to-x": `${toPoint.x}%`, "--to-y": `${toPoint.y}%`,
+    "--capture-ratio": capture.imageRatio,
   } as CSSProperties;
   const journeyLabel = phase === "pullback"
     ? `Pulling back from ${origin.title}`
@@ -281,7 +295,7 @@ export default function Home() {
           <div className="sky-origin" style={{ left: `${fromPoint.x}%`, top: `${fromPoint.y}%` }}><i /><span>{origin.object}</span></div>
           <div className="sky-destination" style={{ left: `${toPoint.x}%`, top: `${toPoint.y}%` }}><i /><span>{target.object}</span></div>
           <div className="sky-reticle"><i /></div>
-          <div className="ground-location"><span>You are here</span><strong>Northern Michigan</strong><small>45.1° N · Lake Michigan dark sky</small></div>
+          <div className="ground-location"><span>You are here</span><strong>Northern Michigan</strong><small>45.1° N · Celestial atlas projection</small></div>
         </div>
 
         <div className="journey-status" role="status" aria-live="polite">
@@ -303,7 +317,7 @@ export default function Home() {
             <p className="provenance">{capture.provenance}</p>
             <dl>
               <div><dt>Constellation</dt><dd>{capture.constellation}</dd></div>
-              <div><dt>Sky position</dt><dd>{formatRa(capture.raDeg)} · {formatDec(capture.decDeg)}</dd></div>
+              <div><dt>Apparent position · J2000</dt><dd>{formatRa(capture.raDeg)} · {formatDec(capture.decDeg)}</dd></div>
               <div><dt>Frames</dt><dd>{capture.frames} × {capture.exposure}</dd></div>
               <div><dt>Captured</dt><dd>{capture.date}</dd></div>
             </dl>
@@ -312,6 +326,7 @@ export default function Home() {
             <p className="eyebrow">Field Note · {capture.object}</p>
             <p className="fact">{capture.fact}</p>
             <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
+            <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
           </article>
         </aside>
       </section>

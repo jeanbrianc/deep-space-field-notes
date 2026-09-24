@@ -9,7 +9,8 @@ test("gallery ships the complete capture collection and interactions", async () 
   const css = await readFile(new URL("app/globals.css", root), "utf8");
   const layout = await readFile(new URL("app/layout.tsx", root), "utf8");
 
-  assert.equal((page.match(/_(?:cleaned|hand_processed)\.(?:jpg|png)"/g) ?? []).length, 34);
+  const referencedImages = new Set(page.match(/Stacked_[^"\n]+_(?:cleaned|hand_processed)\.(?:jpg|png)/g) ?? []);
+  assert.equal(referencedImages.size, 34);
   assert.match(page, /ArrowLeft/);
   assert.match(page, /ArrowRight/);
   assert.match(page, /onTouchStart/);
@@ -17,6 +18,8 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /Northern Michigan/);
   assert.match(page, /"traveling"/);
   assert.match(page, /raDeg/);
+  assert.match(page, /Apparent position · J2000/);
+  assert.match(page, /imageRatios/);
   assert.match(css, /@keyframes skyTravel/);
   assert.match(css, /\.phase-traveling/);
   assert.match(css, /northern-michigan-night\.png/);
