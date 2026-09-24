@@ -9,11 +9,11 @@ test("gallery ships the complete capture collection and interactions", async () 
   const css = await readFile(new URL("app/globals.css", root), "utf8");
   const layout = await readFile(new URL("app/layout.tsx", root), "utf8");
 
-  assert.equal((page.match(/_cleaned\.jpg"/g) ?? []).length, 50);
+  assert.equal((page.match(/_(?:cleaned|hand_processed)\.(?:jpg|png)"/g) ?? []).length, 34);
   assert.match(page, /ArrowLeft/);
   assert.match(page, /ArrowRight/);
   assert.match(page, /onTouchStart/);
-  assert.match(page, /Capture Telemetry/);
+  assert.match(page, /Observation ·/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(layout, /Deep Space Field Notes/);
   assert.doesNotMatch(layout, /codex-preview|_sites-preview/);
@@ -22,6 +22,6 @@ test("gallery ships the complete capture collection and interactions", async () 
 test("all gallery image assets and social card are present", async () => {
   const { readdir, access } = await import("node:fs/promises");
   const images = await readdir(new URL("public/images/", root));
-  assert.equal(images.filter((name) => name.endsWith(".jpg")).length, 50);
+  assert.equal(images.filter((name) => /\.(jpg|png)$/.test(name)).length, 34);
   await access(new URL("public/og.png", root));
 });

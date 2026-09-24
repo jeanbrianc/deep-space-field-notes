@@ -4,51 +4,35 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
-  "Stacked_10_M 45_10.0s_IRCUT_20251223-201128_cleaned.jpg",
   "Stacked_114_IC 1318A_10.0s_LP_20250821-221720_cleaned.jpg",
   "Stacked_124_M 92_10.0s_IRCUT_20250915-210455_cleaned.jpg",
-  "Stacked_12_Vega_10.0s_IRCUT_20250830-211308_cleaned.jpg",
   "Stacked_133_M 106_10.0s_LP_20250530-225212_cleaned.jpg",
   "Stacked_136_C 34_20.0s_IRCUT_20260924-001000_cleaned.jpg",
   "Stacked_144_NGC 5907_10.0s_IRCUT_20250915-213552_cleaned.jpg",
   "Stacked_144_SH2-142_20.0s_LP_20260923-230000_cleaned.jpg",
-  "Stacked_14_C 39_10.0s_IRCUT_20260407-210449_cleaned.jpg",
   "Stacked_150_NGC 281_10.0s_LP_20251123-203503_cleaned.jpg",
   "Stacked_151_Unknown_10.0s_IRCUT_20250606-231447_cleaned.jpg",
   "Stacked_153_IC 5146_10.0s_LP_20251009-214559_cleaned.jpg",
   "Stacked_159_M 27_10.0s_LP_20250916-211701_cleaned.jpg",
-  "Stacked_162_M 81_10.0s_IRCUT_20260422-220323_cleaned.jpg",
+  "Stacked_162_M 81_10.0s_IRCUT_20260422-220323_hand_processed.jpg",
   "Stacked_163_C 27_10.0s_IRCUT_20260922-210708_cleaned.jpg",
-  "Stacked_184_IC 5070_10.0s_LP_20250915-221725_cleaned.jpg",
-  "Stacked_185_M 101_10.0s_IRCUT_20260602-230131_cleaned.jpg",
+  "Stacked_184_IC 5070_10.0s_LP_20250915-221725_hand_processed.png",
+  "Stacked_185_M 101_10.0s_IRCUT_20260602-230131_hand_processed.jpg",
   "Stacked_187_IC 1396A_10.0s_LP_20250821-225811_cleaned.jpg",
   "Stacked_189_NGC 6946_10.0s_IRCUT_20251009-211135_cleaned.jpg",
   "Stacked_191_M 33_10.0s_IRCUT_20251123-200213_cleaned.jpg",
-  "Stacked_201_M 31_10.0s_IRCUT_20251118-191752_cleaned.jpg",
-  "Stacked_20_NGC 7640_10.0s_IRCUT_20251118-192256_cleaned.jpg",
-  "Stacked_223_M 42_10.0s_LP_20260407-215641_cleaned.jpg",
+  "Stacked_201_M 31_10.0s_IRCUT_20251118-191752_hand_processed.png",
+  "Stacked_223_M 42_10.0s_LP_20260407-215641_hand_processed.jpg",
   "Stacked_232_C 31_10.0s_IRCUT_20251223-211803_cleaned.jpg",
   "Stacked_240_NGC 6992_10.0s_LP_20250925-213428_cleaned.jpg",
   "Stacked_240_NGC 7023_10.0s_IRCUT_20250925-222538_cleaned.jpg",
-  "Stacked_24_M 109_10.0s_IRCUT_20260410-211152_cleaned.jpg",
-  "Stacked_269_NGC 6888_10.0s_LP_20250831-224513_cleaned.jpg",
+  "Stacked_269_NGC 6888_10.0s_LP_20250831-224513_hand_processed.png",
   "Stacked_277_NGC 6960_10.0s_LP_20260922-221229_cleaned.jpg",
-  "Stacked_31_SH2-235_10.0s_IRCUT_20260303-202653_cleaned.jpg",
-  "Stacked_32_NGC 5033_10.0s_IRCUT_20260724-222155_cleaned.jpg",
-  "Stacked_35_Arcturus_10.0s_IRCUT_20250717-222528_cleaned.jpg",
-  "Stacked_39_C 22_10.0s_IRCUT_20251118-182500_cleaned.jpg",
-  "Stacked_3_Jupiter_10.0s_IRCUT_20260301-202404_cleaned.jpg",
-  "Stacked_419_M 51_10.0s_IRCUT_20260728-233258_cleaned.jpg",
-  "Stacked_41_M 108_10.0s_IRCUT_20260410-221535_cleaned.jpg",
-  "Stacked_41_M 110_10.0s_IRCUT_20251118-193235_cleaned.jpg",
-  "Stacked_47_M 100_10.0s_IRCUT_20250530-222103_cleaned.jpg",
-  "Stacked_47_NGC 4631_10.0s_IRCUT_20250601-223353_cleaned.jpg",
-  "Stacked_48_mosaic_M 45_10.0s_IRCUT_20251223-202536_cleaned.jpg",
-  "Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_cleaned.jpg",
+  "Stacked_419_M 51_10.0s_IRCUT_20260728-233258_hand_processed.png",
+  "Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_hand_processed.png",
   "Stacked_62_M 102_10.0s_IRCUT_20250606-223915_cleaned.jpg",
   "Stacked_63_NGC 7331_10.0s_IRCUT_20251009-220208_cleaned.jpg",
   "Stacked_64_IC 1318B_10.0s_LP_20250925-203715_cleaned.jpg",
-  "Stacked_6_Uranus_10.0s_IRCUT_20251223-200851_cleaned.jpg",
   "Stacked_71_M 13_10.0s_IRCUT_20260724-223913_cleaned.jpg",
   "Stacked_76_M 3_10.0s_IRCUT_20250717-224225_cleaned.jpg",
   "Stacked_79_M 29_10.0s_IRCUT_20250925-225032_cleaned.jpg",
@@ -116,11 +100,11 @@ const facts: Record<string, string> = {
   "M 97": "Two darker regions in its expanding gas shell create the planetary nebula’s owl-like face.",
 };
 
-type Capture = { file: string; frames: number; object: string; title: string; exposure: string; filter: string; date: string; fact: string };
+type Capture = { file: string; frames: number; object: string; title: string; exposure: string; filter: string; date: string; fact: string; provenance: string };
 
 function parseCapture(file: string): Capture {
-  const match = file.match(/^Stacked_(\d+)_(.+)_([\d.]+)s_(LP|IRCUT)_(\d{8})-(\d{6})_cleaned\.jpg$/)!;
-  const [, frames, rawObject, exposure, filter, date] = match;
+  const match = file.match(/^Stacked_(\d+)_(.+)_([\d.]+)s_(LP|IRCUT)_(\d{8})-(\d{6})_(cleaned|hand_processed)\.(jpg|png)$/)!;
+  const [, frames, rawObject, exposure, filter, date, treatment] = match;
   const isMosaic = rawObject.startsWith("mosaic_");
   const object = rawObject.replace(/^mosaic_/, "");
   const displayObject = isMosaic ? `${object} · Mosaic` : object;
@@ -134,6 +118,7 @@ function parseCapture(file: string): Capture {
     filter,
     date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(isoDate)),
     fact: facts[object] ?? "Every field is a time capsule: the light recorded here began its journey long before it reached the telescope.",
+    provenance: treatment === "hand_processed" ? "Hand processed" : "Color corrected",
   };
 }
 
@@ -167,19 +152,16 @@ export default function Home() {
       if (Math.abs(distance) > 55) move(distance > 0 ? -1 : 1);
       touchX.current = null;
     }}>
-      <div className="star-field" aria-hidden="true" />
       <header className="site-header">
         <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
-        <div className="collection-count">Seestar Collection · {captures.length} Captures</div>
+        <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
       </header>
 
       <section className="portal-stage" aria-live="polite">
-        <div className="orbit orbit-one" aria-hidden="true" />
-        <div className="orbit orbit-two" aria-hidden="true" />
-        <div className="portal-glow" aria-hidden="true" />
-
         <article className="telemetry glass-panel">
-          <p className="eyebrow">Capture Telemetry</p>
+          <p className="eyebrow">Observation · {capture.object}</p>
+          <h1>{capture.title}</h1>
+          <p className="provenance">{capture.provenance}</p>
           <dl>
             <div><dt>Frames</dt><dd>{capture.frames}</dd></div>
             <div><dt>Exposure</dt><dd>{capture.exposure}</dd></div>
@@ -192,7 +174,6 @@ export default function Home() {
           <img src={`/images/${encodeURIComponent(capture.file)}`} alt={`${capture.title}, captured with a Seestar telescope`} />
           <figcaption>
             <span className="catalog-line"><i />{capture.object}</span>
-            <h1>{capture.title}</h1>
           </figcaption>
         </figure>
 
