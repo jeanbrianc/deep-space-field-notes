@@ -9,9 +9,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const origin = `${protocol}://${host}`;
   return {
     title: "Deep Space Field Notes",
-    description: "An observatory archive of carefully selected Seestar captures with 50 or more stacked frames.",
-    openGraph: { title: "Deep Space Field Notes", description: "A cinematic observatory archive of deep-sky captures.", images: [`${origin}/og.png`] },
-    twitter: { card: "summary_large_image", title: "Deep Space Field Notes", description: "A cinematic observatory archive of deep-sky captures.", images: [`${origin}/og.png`] },
+    description: "Stand beneath a Northern Michigan sky and travel from field to field through carefully selected Seestar captures.",
+    openGraph: { title: "Deep Space Field Notes", description: "An immersive journey through the night sky above Northern Michigan.", images: [`${origin}/og.png`] },
+    twitter: { card: "summary_large_image", title: "Deep Space Field Notes", description: "An immersive journey through the night sky above Northern Michigan.", images: [`${origin}/og.png`] },
   };
 }
 

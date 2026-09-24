@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
@@ -100,7 +100,48 @@ const facts: Record<string, string> = {
   "M 97": "Two darker regions in its expanding gas shell create the planetary nebula’s owl-like face.",
 };
 
-type Capture = { file: string; frames: number; object: string; title: string; exposure: string; filter: string; date: string; fact: string; provenance: string };
+type SkyLocation = { raDeg: number | null; decDeg: number | null; constellation: string };
+
+const skyLocations: Record<string, SkyLocation> = {
+  "IC 443": { raDeg: 94.25, decDeg: 22.57, constellation: "Gemini" },
+  "IC 1318A": { raDeg: 304.5, decDeg: 41.5, constellation: "Cygnus" },
+  "M 92": { raDeg: 259.28, decDeg: 43.14, constellation: "Hercules" },
+  "M 106": { raDeg: 184.74, decDeg: 47.3, constellation: "Canes Venatici" },
+  "C 34": { raDeg: 311.41, decDeg: 30.72, constellation: "Cygnus" },
+  "NGC 5907": { raDeg: 228.97, decDeg: 56.33, constellation: "Draco" },
+  "SH2-142": { raDeg: 341.84, decDeg: 58.12, constellation: "Cepheus" },
+  "NGC 281": { raDeg: 13.25, decDeg: 56.62, constellation: "Cassiopeia" },
+  Unknown: { raDeg: null, decDeg: null, constellation: "Uncharted field" },
+  "IC 5146": { raDeg: 328.35, decDeg: 47.27, constellation: "Cygnus" },
+  "M 27": { raDeg: 299.9, decDeg: 22.72, constellation: "Vulpecula" },
+  "M 81": { raDeg: 148.89, decDeg: 69.07, constellation: "Ursa Major" },
+  "C 27": { raDeg: 303.03, decDeg: 38.36, constellation: "Cygnus" },
+  "IC 5070": { raDeg: 312.7, decDeg: 44.35, constellation: "Cygnus" },
+  "M 101": { raDeg: 210.8, decDeg: 54.35, constellation: "Ursa Major" },
+  "IC 1396A": { raDeg: 324.21, decDeg: 57.52, constellation: "Cepheus" },
+  "NGC 6946": { raDeg: 308.72, decDeg: 60.15, constellation: "Cepheus" },
+  "M 33": { raDeg: 23.46, decDeg: 30.66, constellation: "Triangulum" },
+  "M 31": { raDeg: 10.68, decDeg: 41.27, constellation: "Andromeda" },
+  "M 42": { raDeg: 83.82, decDeg: -5.39, constellation: "Orion" },
+  "C 31": { raDeg: 79.02, decDeg: 34.45, constellation: "Auriga" },
+  "NGC 6992": { raDeg: 314.08, decDeg: 31.72, constellation: "Cygnus" },
+  "NGC 7023": { raDeg: 315.4, decDeg: 68.17, constellation: "Cepheus" },
+  "NGC 6888": { raDeg: 303.03, decDeg: 38.36, constellation: "Cygnus" },
+  "NGC 6960": { raDeg: 311.41, decDeg: 30.72, constellation: "Cygnus" },
+  "M 51": { raDeg: 202.47, decDeg: 47.2, constellation: "Canes Venatici" },
+  "M 102": { raDeg: 226.62, decDeg: 55.76, constellation: "Draco" },
+  "NGC 7331": { raDeg: 339.27, decDeg: 34.42, constellation: "Pegasus" },
+  "IC 1318B": { raDeg: 304.75, decDeg: 40.25, constellation: "Cygnus" },
+  "M 13": { raDeg: 250.42, decDeg: 36.46, constellation: "Hercules" },
+  "M 3": { raDeg: 205.55, decDeg: 28.38, constellation: "Canes Venatici" },
+  "M 29": { raDeg: 305.99, decDeg: 38.52, constellation: "Cygnus" },
+  "M 97": { raDeg: 168.7, decDeg: 55.02, constellation: "Ursa Major" },
+};
+
+type Capture = {
+  file: string; frames: number; object: string; title: string; exposure: string; filter: string;
+  date: string; fact: string; provenance: string; raDeg: number | null; decDeg: number | null; constellation: string;
+};
 
 function parseCapture(file: string): Capture {
   const match = file.match(/^Stacked_(\d+)_(.+)_([\d.]+)s_(LP|IRCUT)_(\d{8})-(\d{6})_(cleaned|hand_processed)\.(jpg|png)$/)!;
@@ -108,6 +149,7 @@ function parseCapture(file: string): Capture {
   const isMosaic = rawObject.startsWith("mosaic_");
   const object = rawObject.replace(/^mosaic_/, "");
   const displayObject = isMosaic ? `${object} · Mosaic` : object;
+  const sky = skyLocations[object] ?? skyLocations.Unknown;
   const isoDate = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T12:00:00`;
   return {
     file,
@@ -119,23 +161,86 @@ function parseCapture(file: string): Capture {
     date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(isoDate)),
     fact: facts[object] ?? "Every field is a time capsule: the light recorded here began its journey long before it reached the telescope.",
     provenance: treatment === "hand_processed" ? "Hand processed" : "Color corrected",
+    ...sky,
   };
 }
 
 const captures = imageFiles.map(parseCapture).sort((a, b) => a.title.localeCompare(b.title));
 
+type Phase = "focused" | "pullback" | "traveling" | "arriving";
+
+function skyPoint(capture: Capture) {
+  if (capture.raDeg === null || capture.decDeg === null) return { x: 50, y: 35 };
+  const x = 8 + (capture.raDeg / 360) * 84;
+  const normalizedDeclination = Math.max(0, Math.min(1, (capture.decDeg + 10) / 85));
+  return { x, y: 59 - normalizedDeclination * 43 };
+}
+
+function formatRa(degrees: number | null) {
+  if (degrees === null) return "Not cataloged";
+  const totalMinutes = Math.round((degrees / 15) * 60);
+  return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}h ${String(totalMinutes % 60).padStart(2, "0")}m`;
+}
+
+function formatDec(degrees: number | null) {
+  if (degrees === null) return "Not cataloged";
+  return `${degrees >= 0 ? "+" : "−"}${Math.abs(degrees).toFixed(1)}°`;
+}
+
 export default function Home() {
   const initial = Math.max(0, captures.findIndex((capture) => capture.object === "IC 5146"));
   const [index, setIndex] = useState(initial);
+  const [originIndex, setOriginIndex] = useState(initial);
+  const [targetIndex, setTargetIndex] = useState(initial);
+  const [phase, setPhase] = useState<Phase>("focused");
+  const [reducedMotion, setReducedMotion] = useState(false);
   const touchX = useRef<number | null>(null);
   const capture = captures[index];
+  const origin = captures[originIndex];
+  const target = captures[targetIndex];
 
   const move = useCallback((delta: number) => {
-    setIndex((current) => (current + delta + captures.length) % captures.length);
+    if (phase !== "focused") return;
+    const nextIndex = (index + delta + captures.length) % captures.length;
+    if (reducedMotion) {
+      setIndex(nextIndex);
+      setOriginIndex(nextIndex);
+      setTargetIndex(nextIndex);
+      return;
+    }
+    setOriginIndex(index);
+    setTargetIndex(nextIndex);
+    setPhase("pullback");
+  }, [index, phase, reducedMotion]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(media.matches);
+    updatePreference();
+    media.addEventListener("change", updatePreference);
+    return () => media.removeEventListener("change", updatePreference);
   }, []);
 
   useEffect(() => {
+    if (phase === "focused") return;
+    const nextPhase = phase === "pullback" ? "traveling" : phase === "traveling" ? "arriving" : "focused";
+    const delay = phase === "traveling" ? 1150 : 720;
+    const timer = window.setTimeout(() => {
+      if (phase === "traveling") setIndex(targetIndex);
+      if (phase === "arriving") setOriginIndex(targetIndex);
+      setPhase(nextPhase);
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [phase, targetIndex]);
+
+  useEffect(() => {
+    const warm = [captures[(index + 1) % captures.length], captures[(index - 1 + captures.length) % captures.length]];
+    warm.forEach((item) => { const image = new Image(); image.src = `/images/${encodeURIComponent(item.file)}`; });
+  }, [index]);
+
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.repeat) return;
       if (event.key === "ArrowLeft") move(-1);
       if (event.key === "ArrowRight") move(1);
     };
@@ -144,6 +249,19 @@ export default function Home() {
   }, [move]);
 
   const progress = useMemo(() => `${String(index + 1).padStart(2, "0")} / ${String(captures.length).padStart(2, "0")}`, [index]);
+  const fromPoint = skyPoint(origin);
+  const toPoint = skyPoint(target);
+  const skyStyle = {
+    "--from-x": `${fromPoint.x}%`, "--from-y": `${fromPoint.y}%`,
+    "--to-x": `${toPoint.x}%`, "--to-y": `${toPoint.y}%`,
+  } as CSSProperties;
+  const journeyLabel = phase === "pullback"
+    ? `Pulling back from ${origin.title}`
+    : phase === "traveling"
+      ? `Crossing the sky from ${origin.constellation} to ${target.constellation}`
+      : phase === "arriving"
+        ? `Diving into ${target.title}`
+        : `Viewing ${capture.title}`;
 
   return (
     <main className="gallery-shell" onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }} onTouchEnd={(e) => {
@@ -157,39 +275,54 @@ export default function Home() {
         <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
       </header>
 
-      <section className="portal-stage" aria-live="polite">
-        <article className="telemetry glass-panel">
-          <p className="eyebrow">Observation · {capture.object}</p>
-          <h1>{capture.title}</h1>
-          <p className="provenance">{capture.provenance}</p>
-          <dl>
-            <div><dt>Frames</dt><dd>{capture.frames}</dd></div>
-            <div><dt>Exposure</dt><dd>{capture.exposure}</dd></div>
-            <div><dt>Filter</dt><dd>{capture.filter === "LP" ? "LP" : "IR Cut"}</dd></div>
-            <div><dt>Captured</dt><dd>{capture.date}</dd></div>
-          </dl>
-        </article>
+      <section className={`portal-stage phase-${phase}`} style={skyStyle} aria-busy={phase !== "focused"}>
+        <div className="sky-dome" aria-hidden="true">
+          <div className="sky-grid" />
+          <div className="sky-origin" style={{ left: `${fromPoint.x}%`, top: `${fromPoint.y}%` }}><i /><span>{origin.object}</span></div>
+          <div className="sky-destination" style={{ left: `${toPoint.x}%`, top: `${toPoint.y}%` }}><i /><span>{target.object}</span></div>
+          <div className="sky-reticle"><i /></div>
+          <div className="ground-location"><span>You are here</span><strong>Northern Michigan</strong><small>45.1° N · Lake Michigan dark sky</small></div>
+        </div>
 
-        <figure className="capture-frame" key={capture.file}>
+        <div className="journey-status" role="status" aria-live="polite">
+          <span>{phase === "focused" ? "Telescope locked" : phase === "traveling" ? "Slewing across the sky" : "Changing field of view"}</span>
+          <strong>{journeyLabel}</strong>
+        </div>
+
+        <figure className="capture-frame" key={`${capture.file}-${phase}`}>
           <img src={`/images/${encodeURIComponent(capture.file)}`} alt={`${capture.title}, captured with a Seestar telescope`} />
           <figcaption>
             <span className="catalog-line"><i />{capture.object}</span>
           </figcaption>
         </figure>
 
-        <aside className="field-note glass-panel">
-          <p className="eyebrow">Field Note · {capture.object}</p>
-          <p className="fact">{capture.fact}</p>
+        <aside className="observation-rail">
+          <article className="telemetry">
+            <p className="eyebrow">Observation · {capture.object}</p>
+            <h1>{capture.title}</h1>
+            <p className="provenance">{capture.provenance}</p>
+            <dl>
+              <div><dt>Constellation</dt><dd>{capture.constellation}</dd></div>
+              <div><dt>Sky position</dt><dd>{formatRa(capture.raDeg)} · {formatDec(capture.decDeg)}</dd></div>
+              <div><dt>Frames</dt><dd>{capture.frames} × {capture.exposure}</dd></div>
+              <div><dt>Captured</dt><dd>{capture.date}</dd></div>
+            </dl>
+          </article>
+          <article className="field-note">
+            <p className="eyebrow">Field Note · {capture.object}</p>
+            <p className="fact">{capture.fact}</p>
+            <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
+          </article>
         </aside>
       </section>
 
       <nav className="capture-nav" aria-label="Browse captures">
-        <button onClick={() => move(-1)} aria-label="Previous capture"><span>←</span> Previous</button>
+        <button onClick={() => move(-1)} aria-label="Previous capture" disabled={phase !== "focused"}><span>←</span> Previous sky field</button>
         <div className="progress-wrap">
           <span>{progress}</span>
           <div className="progress-track"><i style={{ width: `${((index + 1) / captures.length) * 100}%` }} /></div>
         </div>
-        <button onClick={() => move(1)} aria-label="Next capture">Next <span>→</span></button>
+        <button onClick={() => move(1)} aria-label="Next capture" disabled={phase !== "focused"}>Next sky field <span>→</span></button>
       </nav>
       <p className="hint">Use arrow keys or swipe to travel the collection</p>
     </main>

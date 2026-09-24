@@ -14,6 +14,12 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /ArrowRight/);
   assert.match(page, /onTouchStart/);
   assert.match(page, /Observation ·/);
+  assert.match(page, /Northern Michigan/);
+  assert.match(page, /"traveling"/);
+  assert.match(page, /raDeg/);
+  assert.match(css, /@keyframes skyTravel/);
+  assert.match(css, /\.phase-traveling/);
+  assert.match(css, /northern-michigan-night\.png/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(layout, /Deep Space Field Notes/);
   assert.doesNotMatch(layout, /codex-preview|_sites-preview/);
@@ -24,4 +30,5 @@ test("all gallery image assets and social card are present", async () => {
   const images = await readdir(new URL("public/images/", root));
   assert.equal(images.filter((name) => /\.(jpg|png)$/.test(name)).length, 34);
   await access(new URL("public/og.png", root));
+  await access(new URL("public/northern-michigan-night.png", root));
 });
