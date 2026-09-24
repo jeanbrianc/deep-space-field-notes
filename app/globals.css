@@ -226,6 +226,26 @@ button { font: inherit; }
   object-fit: contain;
   filter: saturate(.94) contrast(1.025);
 }
+.photo-watermark {
+  position: absolute;
+  z-index: 3;
+  right: 18px;
+  bottom: 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: rgba(238, 233, 220, .5);
+  font-family: "Courier New", monospace;
+  line-height: 1;
+  text-align: right;
+  text-shadow: 0 1px 5px #000, 0 0 14px rgba(0, 0, 0, .9);
+  text-transform: uppercase;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.photo-watermark b { font-size: 7px; font-weight: 400; letter-spacing: .18em; }
+.photo-watermark small { color: rgba(189, 135, 64, .72); font-size: 6px; letter-spacing: .16em; }
 .capture-frame figcaption { position: absolute; z-index: 3; left: 24px; bottom: 20px; }
 .catalog-line {
   display: flex;
@@ -489,6 +509,8 @@ h1 {
 @media (max-width: 520px) {
   .brand { font-size: 9px; letter-spacing: .13em; }
   .capture-frame::after { width: 62px; height: 62px; }
+  .photo-watermark { right: 12px; bottom: 12px; }
+  .photo-watermark b { font-size: 6px; }
   .telemetry dl { grid-template-columns: 1fr; gap: 17px; }
   .progress-wrap { gap: 8px; }
   .capture-nav { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
