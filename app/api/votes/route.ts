@@ -3,7 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { comparisonVotes } from "../../../db/schema";
 import {
-  isComparisonCaptureId,
+  isComparisonId,
   type VoteChoice,
 } from "../../comparisons";
 
@@ -23,7 +23,7 @@ type VoteTotals = {
 };
 
 type VoteResponse = VoteTotals & {
-  captureId: string;
+  comparisonId: string;
   choice: VoteChoice | null;
 };
 
@@ -108,7 +108,7 @@ function isVoteChoice(value: unknown): value is VoteChoice {
 }
 
 async function readVoteResponse(
-  captureId: string,
+  comparisonId: string,
   observerHash: string
 ): Promise<VoteResponse> {
   const db = getDb();
@@ -118,7 +118,10 @@ async function readVoteResponse(
       count: sql<number>`count(*)`,
     })
     .from(comparisonVotes)
-    .where(eq(comparisonVotes.captureId, captureId))
+    // The existing column stores a versioned comparison ID. Keeping the
+    // schema stable preserves old poll rows without counting votes cast on
+    // different image bytes or orientations.
+    .where(eq(comparisonVotes.captureId, comparisonId))
     .groupBy(comparisonVotes.choice);
 
   const totals: VoteTotals = { seestar: 0, nightskyai: 0, total: 0 };
@@ -135,14 +138,14 @@ async function readVoteResponse(
     .from(comparisonVotes)
     .where(
       and(
-        eq(comparisonVotes.captureId, captureId),
+        eq(comparisonVotes.captureId, comparisonId),
         eq(comparisonVotes.observerHash, observerHash)
       )
     )
     .limit(1);
 
   return {
-    captureId,
+    comparisonId,
     ...totals,
     choice: observerVote?.choice ?? null,
   };
@@ -158,15 +161,15 @@ function publicDatabaseError(error: unknown): string {
 
 export async function GET(request: Request): Promise<Response> {
   const observer = getObserverIdentity(request);
-  const captureId = new URL(request.url).searchParams.get("captureId") ?? "";
+  const comparisonId = new URL(request.url).searchParams.get("comparisonId") ?? "";
 
-  if (!isComparisonCaptureId(captureId)) {
-    return errorResponse(request, observer, "Unknown capture.", 404);
+  if (!isComparisonId(comparisonId)) {
+    return errorResponse(request, observer, "Unknown comparison.", 404);
   }
 
   try {
     const observerHash = await hashObserverToken(observer.token);
-    const response = await readVoteResponse(captureId, observerHash);
+    const response = await readVoteResponse(comparisonId, observerHash);
     return jsonResponse(request, observer, response);
   } catch (error) {
     return errorResponse(request, observer, publicDatabaseError(error), 503);
@@ -187,13 +190,13 @@ export async function POST(request: Request): Promise<Response> {
     return errorResponse(request, observer, "Send a valid vote.", 400);
   }
 
-  const { captureId, choice } = payload as {
-    captureId?: unknown;
+  const { comparisonId, choice } = payload as {
+    comparisonId?: unknown;
     choice?: unknown;
   };
 
-  if (typeof captureId !== "string" || !isComparisonCaptureId(captureId)) {
-    return errorResponse(request, observer, "Unknown capture.", 404);
+  if (typeof comparisonId !== "string" || !isComparisonId(comparisonId)) {
+    return errorResponse(request, observer, "Unknown comparison.", 404);
   }
   if (!isVoteChoice(choice)) {
     return errorResponse(
@@ -212,7 +215,7 @@ export async function POST(request: Request): Promise<Response> {
     await db
       .insert(comparisonVotes)
       .values({
-        captureId,
+        captureId: comparisonId,
         observerHash,
         choice,
         createdAt: now,
@@ -223,7 +226,7 @@ export async function POST(request: Request): Promise<Response> {
         set: { choice, updatedAt: now },
       });
 
-    const response = await readVoteResponse(captureId, observerHash);
+    const response = await readVoteResponse(comparisonId, observerHash);
     return jsonResponse(request, observer, response);
   } catch (error) {
     return errorResponse(request, observer, publicDatabaseError(error), 503);

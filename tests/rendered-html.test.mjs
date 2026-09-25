@@ -31,6 +31,8 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /Which treatment earns the sky/);
   assert.match(page, /Informal browser poll/);
   assert.match(page, /Observation span/);
+  assert.match(page, /star-field registered/);
+  assert.match(page, /black borders mark sky the captures do not share/);
   assert.match(page, /not a controlled same-light test/);
   assert.match(page, /disabled=\{!voteReady \|\| voteBusy\}/);
   assert.match(page, /fetch\("\/api\/votes"/);
@@ -57,31 +59,61 @@ test("all gallery image assets and social card are present", async () => {
   assert.equal(images.filter((name) => /\.(jpg|png)$/.test(name)).length, 33);
   const comparisonImages = await readdir(new URL("public/comparisons/images/", root));
   assert.equal(comparisonImages.filter((name) => /\.jpg$/.test(name)).length, 28);
+  const alignedImages = await readdir(new URL("public/comparisons/aligned-v1/", root));
+  assert.equal(alignedImages.filter((name) => /\.jpg$/.test(name)).length, 28);
+  await access(new URL("public/comparisons/alignment-audit.json", root));
   await access(new URL("public/og.png", root));
   await access(new URL("public/northern-michigan-night.png", root));
 });
 
-test("public comparisons pair full-field NightSkyAI exports with stable capture IDs", async () => {
+test("public comparisons preserve full-field sources and ship verified Gallery-aligned derivatives", async () => {
   const registry = await readFile(new URL("app/comparisons.ts", root), "utf8");
   const generated = JSON.parse(await readFile(new URL("app/comparisons.generated.json", root), "utf8"));
   const manifest = JSON.parse(await readFile(new URL("public/comparisons/manifest.json", root), "utf8"));
 
   assert.equal(manifest.captureCount, 28);
-  assert.equal(manifest.defaultedToSeestarCount, 17);
+  assert.equal(manifest.defaultedToSeestarCount, 28);
   assert.equal(new Set(manifest.captures.map((capture) => capture.captureId)).size, 28);
-  assert.equal(manifest.captures.filter((capture) => capture.curatedDefault === "nightskyai").length, 6);
+  assert.equal(new Set(manifest.captures.map((capture) => capture.comparisonId)).size, 28);
+  assert.equal(manifest.captures.filter((capture) => capture.curatedDefault === "nightskyai").length, 0);
   assert.equal(manifest.captures.filter((capture) => capture.nightSkyAI.nightCount > 1).length, 19);
   assert.match(registry, /\.\/comparisons\.generated\.json/);
   assert.equal(generated.schemaVersion, manifest.schemaVersion);
   assert.deepEqual(generated.captures, manifest.captures);
   assert.match(registry, /nightskyFirstTimestamp/);
   assert.match(registry, /nightskyNightCount/);
+  assert.match(registry, /comparisonId/);
+  assert.match(registry, /isGalleryAligned/);
   assert.ok(manifest.captures.every((capture) => capture.baseline.frames >= 50 && capture.nightSkyAI.frames >= 50));
   for (const capture of manifest.captures) {
+    const expectedComparisonId = `comparison-${createHash("sha256")
+      .update(`${capture.captureId}\0${capture.baseline.sha256}\0${capture.nightSkyAI.sha256}`)
+      .digest("hex")
+      .slice(0, 24)}`;
+    assert.equal(capture.comparisonId, expectedComparisonId);
     assert.ok(capture.baseline.width > 0 && capture.baseline.height > 0);
-    assert.deepEqual([capture.nightSkyAI.width, capture.nightSkyAI.height], [1080, 1920]);
+    assert.deepEqual(
+      [capture.nightSkyAI.width, capture.nightSkyAI.height],
+      [capture.baseline.width, capture.baseline.height]
+    );
+    assert.deepEqual(
+      [capture.nightSkyAI.alignment.sourceWidth, capture.nightSkyAI.alignment.sourceHeight],
+      [1080, 1920]
+    );
+    assert.equal(capture.nightSkyAI.alignment.referencePolicy, "gallery-edit-is-immutable");
+    assert.equal(capture.nightSkyAI.alignment.mode, "registered-to-gallery-edit");
+    assert.equal(capture.nightSkyAI.alignment.verification.passed, true);
+    assert.equal(capture.nightSkyAI.alignment.verification.reflected, false);
+    assert.ok(Math.abs(capture.nightSkyAI.alignment.verification.rotationDegrees) <= 0.5);
     const bytes = await readFile(new URL(`public/comparisons/${capture.nightSkyAI.filename}`, root));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), capture.nightSkyAI.sha256);
+    const sourceBytes = await readFile(
+      new URL(`public/comparisons/${capture.nightSkyAI.alignment.sourceFilename}`, root)
+    );
+    assert.equal(
+      createHash("sha256").update(sourceBytes).digest("hex"),
+      capture.nightSkyAI.alignment.sourceSha256
+    );
     const baseline = await readFile(new URL(`public/images/${capture.baseline.filename}`, root));
     assert.equal(createHash("sha256").update(baseline).digest("hex"), capture.baseline.sha256);
   }

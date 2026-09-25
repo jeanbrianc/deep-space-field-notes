@@ -38,7 +38,9 @@ The collection follows a deliberate curation path:
 5. Keep the original capture untouched and publish only the selected processed result.
 6. Reject an automated restack if alignment would crop away most of the field,
    then retry with full-field framing before it can enter the comparison set.
-7. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
+7. Match the NightSkyAI star field to the Gallery edit's orientation and crop,
+   without changing the Gallery reference or overwriting the full-field source.
+8. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
 
 The result is not intended to compete with professional observatory imagery. It is a living record of what a small smart telescope can reveal from a backyard in Northern Michigan—and a more inviting way to share that record with other people.
 
@@ -50,9 +52,18 @@ fresh stack produced by our repeatable command-line pipeline, NightSkyAI.
 NightSkyAI can combine more accepted frames across multiple observing nights,
 so this is an honest comparison of complete results rather than a controlled
 same-light processing test. The interface shows its observation span and night
-count whenever that version is active. Unchanged comparisons open on Brian's
-reviewed choice; a regenerated NightSkyAI image defaults safely to the gallery
-edit until it is reviewed again. Neither version is hidden. Seeing both in the same frame makes
+count whenever that version is active.
+
+Before publication, a deterministic star-pattern audit detects rotation,
+reflection, scale, and framing differences in every pair. The Gallery edit is
+the immutable reference; a separate NightSkyAI derivative is registered onto
+that field so blinking between treatments compares the same stars in the same
+orientation. Black borders honestly identify portions of the Gallery field
+that were not present in the NightSkyAI source. The original 1080 × 1920
+NightSkyAI export remains unchanged alongside the derivative, and the audit
+records hashes, the fitted transform, matched-star evidence, and a second-pass
+verification result. Newly aligned comparisons default to the Gallery edit
+until they are reviewed again. Neither version is hidden. Seeing both in the same frame makes
 differences in field coverage, color, contrast, noise, and detail much easier
 to judge than a side-by-side desktop layout.
 
@@ -61,7 +72,9 @@ The browser receives a random private identifier; only its one-way hash is
 stored, and the choice can be changed later. Aggregate results appear only
 after that browser votes, reducing the temptation to follow the crowd. The
 counts represent browsers, not verified people. This is an informal public
-poll, not a scientific image-quality benchmark.
+poll, not a scientific image-quality benchmark. A comparison ID incorporates
+both image hashes, so changing either treatment starts a fresh fair poll while
+retaining the older rows as historical data.
 
 ## Honest sky travel
 
@@ -91,15 +104,31 @@ Then open the local address shown in the terminal. To validate a production buil
 npm test
 ```
 
+The optional alignment audit uses NumPy and Pillow. The checked-in manifest
+already points to verified derivatives, so the routine check is:
+
+```bash
+python3 -m pip install -r requirements-alignment.txt
+python3 scripts/audit_comparison_alignment.py verify --gallery .
+```
+
+Run `audit` only against a freshly exported, unaligned comparison manifest.
+It is report-only by default; `apply` writes new derivatives and never
+overwrites either input image. The script refuses to re-audit an already
+aligned manifest as if its derivative were fresh source material.
+
 ## Project map
 
 - `app/page.tsx` contains the curated observation catalog and gallery experience.
-- `app/comparisons.ts` binds stable capture IDs to the two reviewed treatments.
+- `app/comparisons.ts` binds stable captures to hash-versioned comparison IDs,
+  preventing votes on obsolete pixels from leaking into a new comparison.
 - `app/comparisons.generated.json` is the build-safe projection of the public comparison manifest; refresh it with `npm run comparisons:sync` after exporting new comparisons.
 - `app/api/votes/` stores changeable anonymous votes and returns aggregates.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
 - `public/images/` contains the selected processed captures.
 - `public/comparisons/` contains the immutable NightSkyAI comparison export and provenance manifest.
+- `scripts/audit_comparison_alignment.py` performs the deterministic,
+  fail-closed star-field audit and produces verified aligned derivatives.
 - `db/schema.ts` and `drizzle/` define the small vote database.
 - `tests/` checks the collection, interactions, descriptions, and required media.
 

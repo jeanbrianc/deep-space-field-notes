@@ -174,7 +174,7 @@ const captures = imageFiles.map(parseCapture).sort((a, b) => a.title.localeCompa
 type Phase = "focused" | "pullback" | "traveling" | "arriving";
 
 type VoteSnapshot = {
-  captureId: string;
+  comparisonId: string;
   seestar: number;
   nightskyai: number;
   total: number;
@@ -182,7 +182,7 @@ type VoteSnapshot = {
 };
 
 type VoteUiState = {
-  captureId: string;
+  comparisonId: string;
   snapshot: VoteSnapshot | null;
   busy: boolean;
   error: string;
@@ -255,10 +255,10 @@ export default function Home() {
   const variant = comparison && variantOverride?.captureId === comparison.captureId
     ? variantOverride.choice
     : comparison?.curatedDefault ?? "seestar";
-  const vote = comparison && voteState?.captureId === comparison.captureId ? voteState.snapshot : null;
-  const voteReady = Boolean(comparison && voteState?.captureId === comparison.captureId);
-  const voteBusy = comparison && voteState?.captureId === comparison.captureId ? voteState.busy : false;
-  const voteError = comparison && voteState?.captureId === comparison.captureId ? voteState.error : "";
+  const vote = comparison && voteState?.comparisonId === comparison.comparisonId ? voteState.snapshot : null;
+  const voteReady = Boolean(comparison && voteState?.comparisonId === comparison.comparisonId);
+  const voteBusy = comparison && voteState?.comparisonId === comparison.comparisonId ? voteState.busy : false;
+  const voteError = comparison && voteState?.comparisonId === comparison.comparisonId ? voteState.error : "";
 
   const selectVariant = (choice: VoteChoice) => {
     if (comparison) setVariantOverride({ captureId: comparison.captureId, choice });
@@ -266,7 +266,9 @@ export default function Home() {
 
   const activeImage = comparison && variant === "nightskyai" ? comparison.nightskyaiImage : comparison?.seestarImage ?? capture.file;
   const activeFrames = comparison && variant === "nightskyai" ? comparison.nightskyaiFrames : capture.frames;
-  const activeProvenance = comparison && variant === "nightskyai" ? "NightSkyAI restack" : capture.provenance;
+  const activeProvenance = comparison && variant === "nightskyai"
+    ? (comparison.isGalleryAligned ? "NightSkyAI · aligned to Gallery" : "NightSkyAI restack")
+    : capture.provenance;
   // Keep the viewing window fixed while blinking between treatments so the
   // comparison does not resize or jump beneath the visitor's gaze.
   const activeRatio = capture.imageRatio;
@@ -318,16 +320,16 @@ export default function Home() {
     if (!comparison) return;
 
     const controller = new AbortController();
-    const captureId = comparison.captureId;
-    fetch(`/api/votes?captureId=${encodeURIComponent(comparison.captureId)}`, { signal: controller.signal })
+    const comparisonId = comparison.comparisonId;
+    fetch(`/api/votes?comparisonId=${encodeURIComponent(comparison.comparisonId)}`, { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error("Votes are temporarily unavailable.");
         return response.json() as Promise<VoteSnapshot>;
       })
-      .then((snapshot) => setVoteState({ captureId, snapshot, busy: false, error: "" }))
+      .then((snapshot) => setVoteState({ comparisonId, snapshot, busy: false, error: "" }))
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setVoteState({ captureId, snapshot: null, busy: false, error: "Votes are temporarily unavailable." });
+        setVoteState({ comparisonId, snapshot: null, busy: false, error: "Votes are temporarily unavailable." });
       });
 
     return () => controller.abort();
@@ -335,11 +337,11 @@ export default function Home() {
 
   const submitVote = async (choice: VoteChoice) => {
     if (!comparison || !voteReady || voteBusy) return;
-    const captureId = comparison.captureId;
+    const comparisonId = comparison.comparisonId;
     selectVariant(choice);
     setVoteState((current) => ({
-      captureId,
-      snapshot: current?.captureId === captureId ? current.snapshot : null,
+      comparisonId,
+      snapshot: current?.comparisonId === comparisonId ? current.snapshot : null,
       busy: true,
       error: "",
     }));
@@ -347,14 +349,14 @@ export default function Home() {
       const response = await fetch("/api/votes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ captureId: comparison.captureId, choice }),
+        body: JSON.stringify({ comparisonId: comparison.comparisonId, choice }),
       });
       if (!response.ok) throw new Error("Vote failed");
-      setVoteState({ captureId, snapshot: await response.json() as VoteSnapshot, busy: false, error: "" });
+      setVoteState({ comparisonId, snapshot: await response.json() as VoteSnapshot, busy: false, error: "" });
     } catch {
       setVoteState((current) => ({
-        captureId,
-        snapshot: current?.captureId === captureId ? current.snapshot : null,
+        comparisonId,
+        snapshot: current?.comparisonId === comparisonId ? current.snapshot : null,
         busy: false,
         error: "Your vote did not save. Please try again.",
       }));
@@ -452,7 +454,7 @@ export default function Home() {
             {comparison && (
               <section className="vote-panel" aria-label="Informal browser poll">
                 <p className="vote-question">Which treatment earns the sky?</p>
-                <p className="vote-intro">The Gallery edit is the selected Seestar or hand-finished image. Compare the completed results above: NightSkyAI may combine more frames across multiple nights, so this is not a controlled same-light test.</p>
+                <p className="vote-intro">The Gallery edit is the alignment reference. NightSkyAI is star-field registered to that orientation and crop; black borders mark sky the captures do not share. It may combine more frames across multiple nights, so this is not a controlled same-light test.</p>
                 <div className="vote-options">
                   <button type="button" aria-pressed={vote?.choice === "seestar"} disabled={!voteReady || voteBusy} onClick={() => submitVote("seestar")}>Gallery edit</button>
                   <button type="button" aria-pressed={vote?.choice === "nightskyai"} disabled={!voteReady || voteBusy} onClick={() => submitVote("nightskyai")}>NightSkyAI</button>

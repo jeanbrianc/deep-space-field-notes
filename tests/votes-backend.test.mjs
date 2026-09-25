@@ -5,7 +5,7 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
-test("vote migration supports one changeable vote per capture and observer", async () => {
+test("vote migration supports one changeable vote per comparison and observer", async () => {
   const migrationNames = (await readdir(new URL("drizzle/", root))).filter(
     (name) => name.endsWith(".sql")
   );
@@ -59,6 +59,7 @@ test("vote migration supports one changeable vote per capture and observer", asy
 
 test("vote endpoint keeps observer identity private and long-lived", async () => {
   const route = await readFile(new URL("app/api/votes/route.ts", root), "utf8");
+  const comparisons = await readFile(new URL("app/comparisons.ts", root), "utf8");
 
   assert.match(route, /crypto\.getRandomValues/);
   assert.match(route, /crypto\.subtle\.digest/);
@@ -66,5 +67,8 @@ test("vote endpoint keeps observer identity private and long-lived", async () =>
   assert.match(route, /SameSite=Lax/);
   assert.match(route, /Max-Age=/);
   assert.match(route, /observerHash/);
+  assert.match(route, /comparisonId/);
+  assert.match(comparisons, /comparisonId/);
+  assert.match(comparisons, /isComparisonId/);
   assert.doesNotMatch(route, /observerToken:\s*text/);
 });
