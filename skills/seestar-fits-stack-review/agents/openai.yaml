@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seestar FITS Stack Review"
+  short_description: "Stack drive FITS and choose gallery winners"
+  default_prompt: "Use $seestar-fits-stack-review now that my YOTUO drive is connected."

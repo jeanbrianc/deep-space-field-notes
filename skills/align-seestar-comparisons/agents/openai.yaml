@@ -1,0 +1,4 @@
+interface:
+  display_name: "Align Seestar Comparisons"
+  short_description: "Audit and align astrophotography comparison pairs"
+  default_prompt: "Use $align-seestar-comparisons to audit each Gallery edit and NightSkyAI pair, align NightSkyAI to the Gallery orientation, and produce a verified manifest."

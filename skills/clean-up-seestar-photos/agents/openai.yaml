@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clean Up Seestar Photos"
+  short_description: "Color-correct and enhance Seestar stack photos"
+  default_prompt: "Use $clean-up-seestar-photos to clean up my downloaded Seestar photos."

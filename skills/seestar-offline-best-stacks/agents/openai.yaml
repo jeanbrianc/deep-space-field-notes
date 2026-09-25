@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seestar Offline Best Stacks"
+  short_description: "Copy each folder’s best Seestar stack offline"
+  default_prompt: "Use $seestar-offline-best-stacks now that my Seestar drive is connected."

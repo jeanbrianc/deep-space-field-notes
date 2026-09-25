@@ -1,0 +1,2 @@
+# Shared image-processing dependencies for cleanup and comparison alignment.
+-r requirements-alignment.txt

@@ -44,6 +44,14 @@ The collection follows a deliberate curation path:
 
 The result is not intended to compete with professional observatory imagery. It is a living record of what a small smart telescope can reveal from a backyard in Northern Michigan—and a more inviting way to share that record with other people.
 
+The complete workflow is available in **[From Seestar Drive to Deep Space Field Note](docs/AUTOMATION_GUIDE.md)**. It includes two paths through the same local automation: a guided
+Codex flow that combines the collection, cleanup, FITS stacking, review, and
+alignment skills, and a copy-ready command-line flow for running the same
+processing and validation without Codex. Public Sites hosting remains a
+separate release step. Both paths keep the telescope archive read-only,
+write private working data under ignored `work/`, and separate local
+preparation from public release.
+
 ## The open processing experiment
 
 For 28 observations, visitors can switch instantly between two finished
