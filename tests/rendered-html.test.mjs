@@ -10,7 +10,8 @@ test("gallery ships the complete capture collection and interactions", async () 
   const layout = await readFile(new URL("app/layout.tsx", root), "utf8");
 
   const referencedImages = new Set(page.match(/Stacked_[^"\n]+_(?:cleaned|hand_processed)\.(?:jpg|png)/g) ?? []);
-  assert.equal(referencedImages.size, 34);
+  assert.equal(referencedImages.size, 33);
+  assert.doesNotMatch(page, /M 106|Messier 106/);
   assert.match(page, /ArrowLeft/);
   assert.match(page, /ArrowRight/);
   assert.match(page, /onTouchStart/);
@@ -31,14 +32,14 @@ test("gallery ships the complete capture collection and interactions", async () 
 
   const factBlock = page.match(/const facts:[\s\S]*?= \{([\s\S]*?)\n\};/)?.[1] ?? "";
   const descriptions = [...factBlock.matchAll(/^  (?:"[^"]+"|\w+): "([^"]+)",$/gm)].map((match) => match[1]);
-  assert.equal(descriptions.length, 33);
+  assert.equal(descriptions.length, 32);
   descriptions.forEach((description) => assert.ok(description.length >= 190 && description.length <= 255));
 });
 
 test("all gallery image assets and social card are present", async () => {
   const { readdir, access } = await import("node:fs/promises");
   const images = await readdir(new URL("public/images/", root));
-  assert.equal(images.filter((name) => /\.(jpg|png)$/.test(name)).length, 34);
+  assert.equal(images.filter((name) => /\.(jpg|png)$/.test(name)).length, 33);
   await access(new URL("public/og.png", root));
   await access(new URL("public/northern-michigan-night.png", root));
 });

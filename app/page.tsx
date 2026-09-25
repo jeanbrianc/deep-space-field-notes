@@ -6,7 +6,6 @@ const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
   "Stacked_114_IC 1318A_10.0s_LP_20250821-221720_cleaned.jpg",
   "Stacked_124_M 92_10.0s_IRCUT_20250915-210455_cleaned.jpg",
-  "Stacked_133_M 106_10.0s_LP_20250530-225212_cleaned.jpg",
   "Stacked_136_C 34_20.0s_IRCUT_20260924-001000_cleaned.jpg",
   "Stacked_144_NGC 5907_10.0s_IRCUT_20250915-213552_cleaned.jpg",
   "Stacked_144_SH2-142_20.0s_LP_20260923-230000_cleaned.jpg",
@@ -52,7 +51,7 @@ const imageRatios: Record<string, number> = {
 
 const commonNames: Record<string, string> = {
   "IC 443": "Jellyfish Nebula", "M 45": "Pleiades", "IC 1318A": "Gamma Cygni Nebula", "M 92": "Messier 92",
-  Vega: "Vega", "M 106": "Messier 106", "C 34": "Western Veil Nebula", "NGC 5907": "Splinter Galaxy",
+  Vega: "Vega", "C 34": "Western Veil Nebula", "NGC 5907": "Splinter Galaxy",
   "SH2-142": "Wizard Nebula", "C 39": "Eskimo Nebula", "NGC 281": "Pacman Nebula", Unknown: "Uncharted Field",
   "IC 5146": "Cocoon Nebula", "M 27": "Dumbbell Nebula", "M 81": "Bode’s Galaxy", "C 27": "Crescent Nebula",
   "IC 5070": "Pelican Nebula", "M 101": "Pinwheel Galaxy", "IC 1396A": "Elephant Trunk Nebula", "NGC 6946": "Fireworks Galaxy",
@@ -69,7 +68,6 @@ const facts: Record<string, string> = {
   "IC 443": "Nicknamed the Jellyfish Nebula, IC 443 is the expanding debris of a shattered star in Gemini. Its tangled shock fronts meet nearby molecular clouds, heating gas that glows across visible, radio, and X-ray wavelengths.",
   "IC 1318A": "IC 1318A is part of a broad emission-nebula complex around Sadr in Cygnus. Ultraviolet light energizes hydrogen while dark foreground dust divides the glow into sweeping lanes, giving this crowded Milky Way field its dramatic texture.",
   "M 92": "M 92 is an ancient globular cluster orbiting in the Milky Way’s halo. Its tightly concentrated core contains generations of old, metal-poor stars, offering astronomers a luminous fossil record of the Galaxy’s earliest chapters.",
-  "M 106": "M 106 is a spiral galaxy with an unusually energetic nucleus. Gas falling toward its central black hole helps power jets and shock-heated structures, while naturally occurring water masers let astronomers probe motion close to the core.",
   "C 34": "Caldwell 34, the Western Veil Nebula, is one luminous arc of the much larger Cygnus Loop. Delicate filaments mark places where an expanding supernova shock encounters surrounding gas, compressing and heating it until it shines.",
   "NGC 5907": "NGC 5907 is a spiral galaxy presented almost perfectly edge-on in Draco. That viewing angle compresses its broad stellar disk into a slender streak, while a dark dust lane traces the cold material from which future stars may form.",
   "SH2-142": "Sh2-142, commonly called the Wizard Nebula, surrounds the young cluster NGC 7380 in Cepheus. Radiation and stellar winds from hot newborn stars illuminate and erode the surrounding hydrogen and dust into a richly structured cloud.",
@@ -107,7 +105,6 @@ const skyLocations: Record<string, SkyLocation> = {
   "IC 443": { raDeg: 94.25, decDeg: 22.57, constellation: "Gemini" },
   "IC 1318A": { raDeg: 304.5, decDeg: 41.5, constellation: "Cygnus" },
   "M 92": { raDeg: 259.28, decDeg: 43.14, constellation: "Hercules" },
-  "M 106": { raDeg: 184.74, decDeg: 47.3, constellation: "Canes Venatici" },
   "C 34": { raDeg: 311.41, decDeg: 30.72, constellation: "Cygnus" },
   "NGC 5907": { raDeg: 228.97, decDeg: 56.33, constellation: "Draco" },
   "SH2-142": { raDeg: 341.84, decDeg: 58.12, constellation: "Cepheus" },

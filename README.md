@@ -23,7 +23,7 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
 - Uses a cinematic Northern Michigan observatory setting to keep the viewer grounded beneath the same sky where the images were captured.
 
-The current collection includes **34 observations** spanning galaxies, nebulae, supernova remnants, and globular clusters.
+The current collection includes **33 observations** spanning galaxies, nebulae, supernova remnants, and globular clusters.
 
 ## From telescope to field note
 
