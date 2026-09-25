@@ -21,6 +21,8 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Explains what the viewer is seeing in approachable field notes.
 - Preserves useful observing context, including frame count, exposure, filter, date, and processing method.
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
+- Lets visitors blink between the selected gallery edit and our NightSkyAI
+  restack in the same viewport, then vote for the treatment they prefer.
 - Uses a cinematic Northern Michigan observatory setting to keep the viewer grounded beneath the same sky where the images were captured.
 
 The current collection includes **33 observations** spanning galaxies, nebulae, supernova remnants, and globular clusters.
@@ -34,9 +36,32 @@ The collection follows a deliberate curation path:
 3. Prefer a finished image from a hand-processed `proc` folder when one exists.
 4. Otherwise, apply conservative color correction and histogram work to reduce strong red or green casts without inventing detail.
 5. Keep the original capture untouched and publish only the selected processed result.
-6. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
+6. Reject an automated restack if alignment would crop away most of the field,
+   then retry with full-field framing before it can enter the comparison set.
+7. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
 
 The result is not intended to compete with professional observatory imagery. It is a living record of what a small smart telescope can reveal from a backyard in Northern Michigan—and a more inviting way to share that record with other people.
+
+## The open processing experiment
+
+For 28 observations, visitors can switch instantly between two finished
+interpretations: the gallery's existing Seestar or hand-finished edit and a
+fresh stack produced by our repeatable command-line pipeline, NightSkyAI.
+NightSkyAI can combine more accepted frames across multiple observing nights,
+so this is an honest comparison of complete results rather than a controlled
+same-light processing test. The interface shows its observation span and night
+count whenever that version is active. Unchanged comparisons open on Brian's
+reviewed choice; a regenerated NightSkyAI image defaults safely to the gallery
+edit until it is reviewed again. Neither version is hidden. Seeing both in the same frame makes
+differences in field coverage, color, contrast, noise, and detail much easier
+to judge than a side-by-side desktop layout.
+
+After comparing, a visitor can cast one anonymous browser vote per observation.
+The browser receives a random private identifier; only its one-way hash is
+stored, and the choice can be changed later. Aggregate results appear only
+after that browser votes, reducing the temptation to follow the crowd. The
+counts represent browsers, not verified people. This is an informal public
+poll, not a scientific image-quality benchmark.
 
 ## Honest sky travel
 
@@ -69,8 +94,12 @@ npm test
 ## Project map
 
 - `app/page.tsx` contains the curated observation catalog and gallery experience.
+- `app/comparisons.ts` binds stable capture IDs to the two reviewed treatments.
+- `app/api/votes/` stores changeable anonymous votes and returns aggregates.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
 - `public/images/` contains the selected processed captures.
+- `public/comparisons/` contains the immutable NightSkyAI comparison export and provenance manifest.
+- `db/schema.ts` and `drizzle/` define the small vote database.
 - `tests/` checks the collection, interactions, descriptions, and required media.
 
 ## Photography

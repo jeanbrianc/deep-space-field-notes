@@ -226,6 +226,49 @@ button { font: inherit; }
   object-fit: contain;
   filter: saturate(.94) contrast(1.025);
 }
+.processing-switch {
+  position: absolute;
+  z-index: 5;
+  top: 14px;
+  left: 14px;
+  padding: 9px;
+  border: 1px solid rgba(196, 181, 150, .24);
+  background: rgba(2, 6, 5, .82);
+  backdrop-filter: blur(12px);
+  font-family: "Courier New", monospace;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+}
+.processing-switch > span {
+  display: block;
+  margin: 0 0 7px;
+  color: #8e938b;
+  font-size: 7px;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+.processing-switch > div { display: flex; gap: 4px; }
+.processing-switch button {
+  min-height: 36px;
+  padding: 7px 9px 6px;
+  border: 1px solid rgba(196, 181, 150, .2);
+  background: rgba(5, 10, 8, .74);
+  color: #a4a79f;
+  font-family: inherit;
+  font-size: 8px;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+.processing-switch button:hover,
+.processing-switch button[aria-pressed="true"] {
+  border-color: rgba(189, 135, 64, .82);
+  background: rgba(119, 79, 31, .76);
+  color: #f1eadc;
+}
+.processing-switch button:focus-visible,
+.vote-options button:focus-visible {
+  outline: 2px solid #f1b867;
+  outline-offset: 2px;
+}
 .photo-watermark {
   position: absolute;
   z-index: 3;
@@ -271,6 +314,9 @@ button { font: inherit; }
   border-left: 1px solid rgba(180, 173, 153, .16);
   background: var(--panel);
   backdrop-filter: blur(22px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #3c3325 transparent;
   transition: opacity .35s ease, transform .55s cubic-bezier(.4, 0, .2, 1);
 }
 .telemetry { padding: 40px 38px 28px; }
@@ -334,6 +380,67 @@ h1 {
 .field-note .eyebrow { color: #9b805a; }
 .fact { max-width: 360px; margin: 0; color: #b1b3ac; font-size: 17px; line-height: 1.52; }
 .filter-note { margin: 22px 0 0; line-height: 1.6; }
+.vote-panel {
+  margin: 24px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--line);
+}
+.vote-question {
+  margin: 0;
+  color: #e3dfd4;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.vote-intro {
+  margin: 7px 0 0;
+  color: #858a82;
+  font-family: "Courier New", monospace;
+  font-size: 8px;
+  line-height: 1.5;
+  letter-spacing: .06em;
+}
+.vote-options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 13px; }
+.vote-options button {
+  min-height: 36px;
+  padding: 8px 6px;
+  border: 1px solid rgba(189, 135, 64, .5);
+  background: rgba(9, 13, 11, .8);
+  color: #d0cdc3;
+  font-family: "Courier New", monospace;
+  font-size: 8px;
+  letter-spacing: .07em;
+  cursor: pointer;
+}
+.vote-options button:hover:not(:disabled),
+.vote-options button[aria-pressed="true"] {
+  background: #805824;
+  color: #fff8e9;
+}
+.vote-options button:disabled { opacity: .55; cursor: wait; }
+.vote-results { display: grid; gap: 8px; margin-top: 14px; }
+.vote-results > div {
+  display: grid;
+  grid-template-columns: 82px 1fr 20px;
+  align-items: center;
+  gap: 8px;
+  color: #8c918a;
+  font-family: "Courier New", monospace;
+  font-size: 7px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.vote-results i { height: 2px; overflow: hidden; background: #282d29; }
+.vote-results b { display: block; height: 100%; background: var(--amber); transition: width .35s ease; }
+.vote-results strong { color: #c9c7bd; font-size: 8px; font-weight: 400; text-align: right; }
+.vote-error { margin: 11px 0 0; color: #d7a66a; font-family: "Courier New", monospace; font-size: 8px; line-height: 1.4; }
+.vote-privacy {
+  margin: 11px 0 0;
+  color: #5f655f;
+  font-family: "Courier New", monospace;
+  font-size: 7px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
 .projection-note {
   margin: 12px 0 0;
   color: #686d67;
@@ -511,6 +618,9 @@ h1 {
   .capture-frame::after { width: 62px; height: 62px; }
   .photo-watermark { right: 12px; bottom: 12px; }
   .photo-watermark b { font-size: 6px; }
+  .processing-switch { top: 9px; left: 9px; padding: 7px; }
+  .processing-switch > span { display: none; }
+  .processing-switch button { min-width: 86px; min-height: 40px; padding: 8px 10px; font-size: 8px; }
   .telemetry dl { grid-template-columns: 1fr; gap: 17px; }
   .progress-wrap { gap: 8px; }
   .capture-nav { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }

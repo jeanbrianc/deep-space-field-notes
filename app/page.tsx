@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { comparisons, type CaptureComparison, type VoteChoice } from "./comparisons";
 
 const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
@@ -140,6 +141,7 @@ type Capture = {
   file: string; frames: number; object: string; title: string; exposure: string; filter: string;
   date: string; fact: string; provenance: string; imageRatio: number;
   raDeg: number | null; decDeg: number | null; constellation: string;
+  comparison: CaptureComparison | null;
 };
 
 function parseCapture(file: string): Capture {
@@ -149,6 +151,7 @@ function parseCapture(file: string): Capture {
   const object = rawObject.replace(/^mosaic_/, "");
   const displayObject = isMosaic ? `${object} · Mosaic` : object;
   const sky = skyLocations[object] ?? skyLocations.Unknown;
+  const comparison = comparisons.find((item) => item.seestarImage === file) ?? null;
   const isoDate = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T12:00:00`;
   return {
     file,
@@ -161,6 +164,7 @@ function parseCapture(file: string): Capture {
     fact: facts[object] ?? "Every field is a time capsule: the light recorded here began its journey long before it reached the telescope.",
     provenance: treatment === "hand_processed" ? "Hand processed" : "Color corrected",
     imageRatio: imageRatios[file] ?? 1080 / 1920,
+    comparison,
     ...sky,
   };
 }
@@ -168,6 +172,31 @@ function parseCapture(file: string): Capture {
 const captures = imageFiles.map(parseCapture).sort((a, b) => a.title.localeCompare(b.title));
 
 type Phase = "focused" | "pullback" | "traveling" | "arriving";
+
+type VoteSnapshot = {
+  captureId: string;
+  seestar: number;
+  nightskyai: number;
+  total: number;
+  choice: VoteChoice | null;
+};
+
+type VoteUiState = {
+  captureId: string;
+  snapshot: VoteSnapshot | null;
+  busy: boolean;
+  error: string;
+};
+
+function publicImageUrl(path: string) {
+  return path.startsWith("/") ? path : `/images/${encodeURIComponent(path)}`;
+}
+
+function curatedImage(capture: Capture) {
+  const comparison = capture.comparison;
+  if (comparison?.curatedDefault === "nightskyai") return comparison.nightskyaiImage;
+  return comparison?.seestarImage ?? capture.file;
+}
 
 function skyPoint(capture: Capture) {
   if (capture.raDeg === null || capture.decDeg === null) return { x: 50, y: 35 };
@@ -187,6 +216,28 @@ function formatDec(degrees: number | null) {
   return `${degrees >= 0 ? "+" : "−"}${Math.abs(degrees).toFixed(1)}°`;
 }
 
+function formatObservationDay(timestamp: string) {
+  const dateParts = timestamp.match(/^(\d{4})-?(\d{2})-?(\d{2})/);
+  const date = dateParts
+    ? new Date(Date.UTC(Number(dateParts[1]), Number(dateParts[2]) - 1, Number(dateParts[3])))
+    : new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return timestamp;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatObservationSpan(comparison: CaptureComparison) {
+  const first = formatObservationDay(comparison.nightskyFirstTimestamp);
+  const last = formatObservationDay(comparison.nightskyLastTimestamp);
+  const dateRange = first === last ? first : `${first} – ${last}`;
+  const nights = `${comparison.nightskyNightCount} observing ${comparison.nightskyNightCount === 1 ? "night" : "nights"}`;
+  return `${dateRange} · ${nights}`;
+}
+
 export default function Home() {
   const initial = Math.max(0, captures.findIndex((capture) => capture.object === "IC 5146"));
   const [index, setIndex] = useState(initial);
@@ -194,10 +245,31 @@ export default function Home() {
   const [targetIndex, setTargetIndex] = useState(initial);
   const [phase, setPhase] = useState<Phase>("focused");
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [variantOverride, setVariantOverride] = useState<{ captureId: string; choice: VoteChoice } | null>(null);
+  const [voteState, setVoteState] = useState<VoteUiState | null>(null);
   const touchX = useRef<number | null>(null);
   const capture = captures[index];
   const origin = captures[originIndex];
   const target = captures[targetIndex];
+  const comparison = capture.comparison;
+  const variant = comparison && variantOverride?.captureId === comparison.captureId
+    ? variantOverride.choice
+    : comparison?.curatedDefault ?? "seestar";
+  const vote = comparison && voteState?.captureId === comparison.captureId ? voteState.snapshot : null;
+  const voteReady = Boolean(comparison && voteState?.captureId === comparison.captureId);
+  const voteBusy = comparison && voteState?.captureId === comparison.captureId ? voteState.busy : false;
+  const voteError = comparison && voteState?.captureId === comparison.captureId ? voteState.error : "";
+
+  const selectVariant = (choice: VoteChoice) => {
+    if (comparison) setVariantOverride({ captureId: comparison.captureId, choice });
+  };
+
+  const activeImage = comparison && variant === "nightskyai" ? comparison.nightskyaiImage : comparison?.seestarImage ?? capture.file;
+  const activeFrames = comparison && variant === "nightskyai" ? comparison.nightskyaiFrames : capture.frames;
+  const activeProvenance = comparison && variant === "nightskyai" ? "NightSkyAI restack" : capture.provenance;
+  // Keep the viewing window fixed while blinking between treatments so the
+  // comparison does not resize or jump beneath the visitor's gaze.
+  const activeRatio = capture.imageRatio;
 
   const move = useCallback((delta: number) => {
     if (phase !== "focused") return;
@@ -235,8 +307,59 @@ export default function Home() {
 
   useEffect(() => {
     const warm = [captures[(index + 1) % captures.length], captures[(index - 1 + captures.length) % captures.length]];
-    warm.forEach((item) => { const image = new Image(); image.src = `/images/${encodeURIComponent(item.file)}`; });
-  }, [index]);
+    warm.forEach((item) => { const image = new Image(); image.src = publicImageUrl(curatedImage(item)); });
+    if (comparison) {
+      const alternate = new Image();
+      alternate.src = publicImageUrl(variant === "seestar" ? comparison.nightskyaiImage : comparison.seestarImage);
+    }
+  }, [comparison, index, variant]);
+
+  useEffect(() => {
+    if (!comparison) return;
+
+    const controller = new AbortController();
+    const captureId = comparison.captureId;
+    fetch(`/api/votes?captureId=${encodeURIComponent(comparison.captureId)}`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Votes are temporarily unavailable.");
+        return response.json() as Promise<VoteSnapshot>;
+      })
+      .then((snapshot) => setVoteState({ captureId, snapshot, busy: false, error: "" }))
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setVoteState({ captureId, snapshot: null, busy: false, error: "Votes are temporarily unavailable." });
+      });
+
+    return () => controller.abort();
+  }, [comparison]);
+
+  const submitVote = async (choice: VoteChoice) => {
+    if (!comparison || !voteReady || voteBusy) return;
+    const captureId = comparison.captureId;
+    selectVariant(choice);
+    setVoteState((current) => ({
+      captureId,
+      snapshot: current?.captureId === captureId ? current.snapshot : null,
+      busy: true,
+      error: "",
+    }));
+    try {
+      const response = await fetch("/api/votes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ captureId: comparison.captureId, choice }),
+      });
+      if (!response.ok) throw new Error("Vote failed");
+      setVoteState({ captureId, snapshot: await response.json() as VoteSnapshot, busy: false, error: "" });
+    } catch {
+      setVoteState((current) => ({
+        captureId,
+        snapshot: current?.captureId === captureId ? current.snapshot : null,
+        busy: false,
+        error: "Your vote did not save. Please try again.",
+      }));
+    }
+  };
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -254,7 +377,7 @@ export default function Home() {
   const skyStyle = {
     "--from-x": `${fromPoint.x}%`, "--from-y": `${fromPoint.y}%`,
     "--to-x": `${toPoint.x}%`, "--to-y": `${toPoint.y}%`,
-    "--capture-ratio": capture.imageRatio,
+    "--capture-ratio": activeRatio,
   } as CSSProperties;
   const journeyLabel = phase === "pullback"
     ? `Pulling back from ${origin.title}`
@@ -291,7 +414,16 @@ export default function Home() {
         </div>
 
         <figure className="capture-frame" key={`${capture.file}-${phase}`}>
-          <img src={`/images/${encodeURIComponent(capture.file)}`} alt={`${capture.title}, captured with a Seestar telescope`} />
+          <img src={publicImageUrl(activeImage)} alt={`${capture.title}, ${variant === "nightskyai" ? "NightSkyAI restack" : "gallery edit"}`} />
+          {comparison && (
+            <div className="processing-switch" role="group" aria-label="Choose processing view">
+              <span>Processing view</span>
+              <div>
+                <button type="button" aria-pressed={variant === "seestar"} onClick={() => selectVariant("seestar")}>Gallery edit</button>
+                <button type="button" aria-pressed={variant === "nightskyai"} onClick={() => selectVariant("nightskyai")}>NightSkyAI</button>
+              </div>
+            </div>
+          )}
           <span className="photo-watermark" aria-hidden="true"><b>Deep Space Field Notes</b><small>© Brian Jean</small></span>
           <figcaption>
             <span className="catalog-line"><i />{capture.object}</span>
@@ -302,18 +434,39 @@ export default function Home() {
           <article className="telemetry">
             <p className="eyebrow">Observation · {capture.object}</p>
             <h1>{capture.title}</h1>
-            <p className="provenance">{capture.provenance}</p>
+            <p className="provenance">{activeProvenance}</p>
             <dl>
               <div><dt>Constellation</dt><dd>{capture.constellation}</dd></div>
               <div><dt>Apparent position · J2000</dt><dd>{formatRa(capture.raDeg)} · {formatDec(capture.decDeg)}</dd></div>
-              <div><dt>Frames</dt><dd>{capture.frames} × {capture.exposure}</dd></div>
-              <div><dt>Captured</dt><dd>{capture.date}</dd></div>
+              <div><dt>Frames</dt><dd>{activeFrames} × {capture.exposure}</dd></div>
+              <div>
+                <dt>{comparison && variant === "nightskyai" ? "Observation span" : "Captured"}</dt>
+                <dd>{comparison && variant === "nightskyai" ? formatObservationSpan(comparison) : capture.date}</dd>
+              </div>
             </dl>
           </article>
           <article className="field-note">
             <p className="eyebrow">Field Note · {capture.object}</p>
             <p className="fact">{capture.fact}</p>
             <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
+            {comparison && (
+              <section className="vote-panel" aria-label="Informal browser poll">
+                <p className="vote-question">Which treatment earns the sky?</p>
+                <p className="vote-intro">The Gallery edit is the selected Seestar or hand-finished image. Compare the completed results above: NightSkyAI may combine more frames across multiple nights, so this is not a controlled same-light test.</p>
+                <div className="vote-options">
+                  <button type="button" aria-pressed={vote?.choice === "seestar"} disabled={!voteReady || voteBusy} onClick={() => submitVote("seestar")}>Gallery edit</button>
+                  <button type="button" aria-pressed={vote?.choice === "nightskyai"} disabled={!voteReady || voteBusy} onClick={() => submitVote("nightskyai")}>NightSkyAI</button>
+                </div>
+                {vote?.choice && (
+                  <div className="vote-results" aria-live="polite">
+                    <div><span>Gallery edit</span><i><b style={{ width: `${vote.total ? (vote.seestar / vote.total) * 100 : 0}%` }} /></i><strong>{vote.seestar}</strong></div>
+                    <div><span>NightSkyAI</span><i><b style={{ width: `${vote.total ? (vote.nightskyai / vote.total) * 100 : 0}%` }} /></i><strong>{vote.nightskyai}</strong></div>
+                  </div>
+                )}
+                {voteError && <p className="vote-error" role="status">{voteError}</p>}
+                <p className="vote-privacy">Informal browser poll · counts are browsers, not verified people · change your choice anytime</p>
+              </section>
+            )}
             <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
           </article>
         </aside>
