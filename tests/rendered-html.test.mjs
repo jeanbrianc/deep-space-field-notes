@@ -63,6 +63,7 @@ test("all gallery image assets and social card are present", async () => {
 
 test("public comparisons pair full-field NightSkyAI exports with stable capture IDs", async () => {
   const registry = await readFile(new URL("app/comparisons.ts", root), "utf8");
+  const generated = JSON.parse(await readFile(new URL("app/comparisons.generated.json", root), "utf8"));
   const manifest = JSON.parse(await readFile(new URL("public/comparisons/manifest.json", root), "utf8"));
 
   assert.equal(manifest.captureCount, 28);
@@ -70,7 +71,9 @@ test("public comparisons pair full-field NightSkyAI exports with stable capture 
   assert.equal(new Set(manifest.captures.map((capture) => capture.captureId)).size, 28);
   assert.equal(manifest.captures.filter((capture) => capture.curatedDefault === "nightskyai").length, 6);
   assert.equal(manifest.captures.filter((capture) => capture.nightSkyAI.nightCount > 1).length, 19);
-  assert.match(registry, /comparisonManifest\.captures/);
+  assert.match(registry, /\.\/comparisons\.generated\.json/);
+  assert.equal(generated.schemaVersion, manifest.schemaVersion);
+  assert.deepEqual(generated.captures, manifest.captures);
   assert.match(registry, /nightskyFirstTimestamp/);
   assert.match(registry, /nightskyNightCount/);
   assert.ok(manifest.captures.every((capture) => capture.baseline.frames >= 50 && capture.nightSkyAI.frames >= 50));

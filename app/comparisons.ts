@@ -1,4 +1,4 @@
-import comparisonManifest from "../public/comparisons/manifest.json";
+import comparisonManifest from "./comparisons.generated.json";
 
 export type VoteChoice = "seestar" | "nightskyai";
 

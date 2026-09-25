@@ -95,6 +95,7 @@ npm test
 
 - `app/page.tsx` contains the curated observation catalog and gallery experience.
 - `app/comparisons.ts` binds stable capture IDs to the two reviewed treatments.
+- `app/comparisons.generated.json` is the build-safe projection of the public comparison manifest; refresh it with `npm run comparisons:sync` after exporting new comparisons.
 - `app/api/votes/` stores changeable anonymous votes and returns aggregates.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
 - `public/images/` contains the selected processed captures.

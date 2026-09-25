@@ -1,0 +1,761 @@
+{
+  "schemaVersion": 1,
+  "captures": [
+    {
+      "baseline": {
+        "filename": "Stacked_163_C 27_10.0s_IRCUT_20260922-210708_cleaned.jpg",
+        "frames": 163,
+        "height": 1920,
+        "sha256": "ec1ccfaf338e4cb36d58528609f92d45143c96fa0dc6aabf2066ddba6acf3eee",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-94db767b7b7ce4f41683188f",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-94db767b7b7ce4f41683188f.jpg",
+        "firstTimestamp": "20260922-202817",
+        "frames": 156,
+        "height": 1920,
+        "inputFingerprint": "c32dd7de25434625d95cb64ae44a2021f1f804f3b4490309cd86340819e84844",
+        "lastTimestamp": "20260922-210701",
+        "nightCount": 1,
+        "sha256": "d84aa4432491693d56f7e397586dbd5c25d21d17d33032a88db38e7adf89d822",
+        "width": 1080
+      },
+      "object": "C 27"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_232_C 31_10.0s_IRCUT_20251223-211803_cleaned.jpg",
+        "frames": 232,
+        "height": 1920,
+        "sha256": "ae2405633090d6fdfa28317b52201e882bdd3557138b1e8331069053b3fdf408",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-b0d3097038799d4d76ba8e9e",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-b0d3097038799d4d76ba8e9e.jpg",
+        "firstTimestamp": "20251223-202630",
+        "frames": 197,
+        "height": 1920,
+        "inputFingerprint": "24385956d8ee3d7c8aeb2e743c9adfef75b2f5a51b045644c40358fafb798e20",
+        "lastTimestamp": "20251223-211756",
+        "nightCount": 1,
+        "sha256": "c00baaad979b8edf7d67a16c3a63b25daaa9bfd001ca80aef5fd3c7114f903b0",
+        "width": 1080
+      },
+      "object": "C 31"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_136_C 34_20.0s_IRCUT_20260924-001000_cleaned.jpg",
+        "frames": 136,
+        "height": 1920,
+        "sha256": "4bfd9a0688e408db2fdbbd14e349eff4dc00bf9290803993140864136aa76b81",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-d2bba686008c726fcd228484",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "20",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-d2bba686008c726fcd228484.jpg",
+        "firstTimestamp": "20260923-230149",
+        "frames": 136,
+        "height": 1920,
+        "inputFingerprint": "5615d791bfd73d24ce0dc8ecba3e9c13a7440f08d9362149bf31593885bf9647",
+        "lastTimestamp": "20260924-000944",
+        "nightCount": 2,
+        "sha256": "4c0fef5419d72b4a7ca5a4a043d82b7d2b44324c2d713cbc30c6d704764c7fb4",
+        "width": 1080
+      },
+      "object": "C 34"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_114_IC 1318A_10.0s_LP_20250821-221720_cleaned.jpg",
+        "frames": 114,
+        "height": 1920,
+        "sha256": "058d17dbf2ce933c3d05fe98ca9baa9b4a174ef5917ab07836c7c31d23687868",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-78a50a0a20233d62e0b91153",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-78a50a0a20233d62e0b91153.jpg",
+        "firstTimestamp": "20250821-214201",
+        "frames": 106,
+        "height": 1920,
+        "inputFingerprint": "02be444733df391c717868576710d00b767372e808de49b638666798196a6be6",
+        "lastTimestamp": "20250829-212052",
+        "nightCount": 2,
+        "sha256": "4b3d241833c6a2a36ac99b5fa7cc239d573341a5fe0f80a1f4db83a8460e05f8",
+        "width": 1080
+      },
+      "object": "IC 1318A"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_64_IC 1318B_10.0s_LP_20250925-203715_cleaned.jpg",
+        "frames": 64,
+        "height": 1920,
+        "sha256": "bca736577a7a1045ef9745af2baa8639fd1cb44585aede96bad57f79f314714d",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-e358def559ba3444c126a64f",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-e358def559ba3444c126a64f.jpg",
+        "firstTimestamp": "20250925-202107",
+        "frames": 61,
+        "height": 1920,
+        "inputFingerprint": "b5fb9f31b62657644419e27921cad2505025d7a39ce2eb6bea67b72c13b23ae3",
+        "lastTimestamp": "20250925-203707",
+        "nightCount": 1,
+        "sha256": "31aa1cc429feae6ca70617ba040bc0f068c4fbf290e5935e9f4a24dc8d59a70c",
+        "width": 1080
+      },
+      "object": "IC 1318B"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_187_IC 1396A_10.0s_LP_20250821-225811_cleaned.jpg",
+        "frames": 187,
+        "height": 1920,
+        "sha256": "928b1d220303d640408a89869140438514ea10d7240a985269b87862fadf9443",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-41213dc7577c338ca3298908",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-41213dc7577c338ca3298908.jpg",
+        "firstTimestamp": "20250821-221813",
+        "frames": 179,
+        "height": 1920,
+        "inputFingerprint": "a341bc3e635fbee190042e009d03bd03e40a583da5269f61bfd7b83cc501fd48",
+        "lastTimestamp": "20250821-225809",
+        "nightCount": 1,
+        "sha256": "74e3f0bea444a2482751c4ec7d4ee3686feedad7d18dad5b241da02f58f3c4da",
+        "width": 1080
+      },
+      "object": "IC 1396A"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
+        "frames": 101,
+        "height": 1920,
+        "sha256": "cd3492f88489070a9059712a4a5371645ca6bfa3aa1d384c2420b284c889f924",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-be061b9afa3d015033a77a43",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-be061b9afa3d015033a77a43.jpg",
+        "firstTimestamp": "20260303-211326",
+        "frames": 96,
+        "height": 1920,
+        "inputFingerprint": "2d3bfc5a518f07738e071c20c5574f7ef44db5573d69c18e806f8de827cb6497",
+        "lastTimestamp": "20260303-213549",
+        "nightCount": 1,
+        "sha256": "f2268d10cfbd0d99457049d93d31373aac722c6067bc03ab7818c21f0e5dfd4a",
+        "width": 1080
+      },
+      "object": "IC 443"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_184_IC 5070_10.0s_LP_20250915-221725_hand_processed.png",
+        "frames": 184,
+        "height": 1736,
+        "sha256": "149292474a893a255c51f46d10e986367037048bcec096be203eee351296977c",
+        "treatment": "hand processed",
+        "width": 899
+      },
+      "captureId": "capture-3cfbc3d981548dd348ce995f",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-3cfbc3d981548dd348ce995f.jpg",
+        "firstTimestamp": "20250914-212559",
+        "frames": 273,
+        "height": 1920,
+        "inputFingerprint": "5ef9fa017bb6447a286bc3dfc902de91c53f18b3f8df513d578622a6991bfaf3",
+        "lastTimestamp": "20250915-221716",
+        "nightCount": 2,
+        "sha256": "0b5d6a4431a2946f1cc8f7bc70101c90325c5f4678f774f0df8ee3933de9b873",
+        "width": 1080
+      },
+      "object": "IC 5070"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_153_IC 5146_10.0s_LP_20251009-214559_cleaned.jpg",
+        "frames": 153,
+        "height": 1920,
+        "sha256": "705bde6c303fbd397e85de48d143b1b8599c5481ccb15290292123a67362035e",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-d571e08d24e668275cee5446",
+      "curatedDefault": "nightskyai",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-d571e08d24e668275cee5446.jpg",
+        "firstTimestamp": "20250926-215643",
+        "frames": 233,
+        "height": 1920,
+        "inputFingerprint": "6221fda4f1717984d928b48243742e33378d074e35603e5c3adc55b0572fa34c",
+        "lastTimestamp": "20251009-214554",
+        "nightCount": 2,
+        "sha256": "a062340b4e5029e090a81f8777716f1d762cb4586eed6cd7f1c166b2fd6f0291",
+        "width": 1080
+      },
+      "object": "IC 5146"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_185_M 101_10.0s_IRCUT_20260602-230131_hand_processed.jpg",
+        "frames": 185,
+        "height": 1237,
+        "sha256": "a929d3871fe90d69427c730ae33d37acf78a0b2e8ce25318cfa3896d47caaf74",
+        "treatment": "hand processed",
+        "width": 956
+      },
+      "captureId": "capture-479d934668bf3476f3bdfaf8",
+      "curatedDefault": "nightskyai",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-479d934668bf3476f3bdfaf8.jpg",
+        "firstTimestamp": "20260410-212542",
+        "frames": 417,
+        "height": 1920,
+        "inputFingerprint": "2bb1bcbe07886a1e7e9d8ae96b94fcceb32f71945cce07e4c9da592f1e6d8d11",
+        "lastTimestamp": "20260724-230513",
+        "nightCount": 3,
+        "sha256": "4651996ffaba445e791a52ec321cfe1d7da169372d8376381fd7970526a91081",
+        "width": 1080
+      },
+      "object": "M 101"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_71_M 13_10.0s_IRCUT_20260724-223913_cleaned.jpg",
+        "frames": 71,
+        "height": 1920,
+        "sha256": "c99bd1d9d6d2ec104176cab785767d0c6de7a70a34d6d40941910f616ad1ffd7",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-93c9324b0d331475c807da4d",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-93c9324b0d331475c807da4d.jpg",
+        "firstTimestamp": "20250831-211707",
+        "frames": 107,
+        "height": 1920,
+        "inputFingerprint": "12e653cade3c27c6212a71e6019502aaf8fdf0a105ddd4a63b80a67c7b91632d",
+        "lastTimestamp": "20260724-223904",
+        "nightCount": 2,
+        "sha256": "6302442feb5e5172a1e3134ea0fbc5a08fae0ffd9a337b2e24623a3c658bc534",
+        "width": 1080
+      },
+      "object": "M 13"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_159_M 27_10.0s_LP_20250916-211701_cleaned.jpg",
+        "frames": 159,
+        "height": 1920,
+        "sha256": "00d7056d9e7152986443790baa95a9b4840922b9f7762552459d5557424483ae",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-6d7bc1d3b213a8f5f13f3089",
+      "curatedDefault": "nightskyai",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-6d7bc1d3b213a8f5f13f3089.jpg",
+        "firstTimestamp": "20250915-221829",
+        "frames": 253,
+        "height": 1920,
+        "inputFingerprint": "517ca3ff190d78fdcc6f5029c8f76e4d9b46ddfb23745b64aa3f61b2a3f63c0d",
+        "lastTimestamp": "20250916-211652",
+        "nightCount": 2,
+        "sha256": "e53e7c41d2489bfd7da1354f7760d53551490cf5ee1e636c8e5a99f5cc5f0b3f",
+        "width": 1080
+      },
+      "object": "M 27"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_79_M 29_10.0s_IRCUT_20250925-225032_cleaned.jpg",
+        "frames": 79,
+        "height": 1920,
+        "sha256": "48880010abca47ba1f595bc3c9a6eb17f8a0cee7a551d6391016f36e91aa3520",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-87e6f33bbab83827850e6b01",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-87e6f33bbab83827850e6b01.jpg",
+        "firstTimestamp": "20250925-222647",
+        "frames": 74,
+        "height": 1920,
+        "inputFingerprint": "5c7a72a52991e5f7efdd0bd43f66c9e7f7f2ba11770aeec225dd99852a899b4a",
+        "lastTimestamp": "20250925-225020",
+        "nightCount": 1,
+        "sha256": "ab3ebfe282c4f0d210b2f7c3e82561b701b9741b1d7fc6a106b8fff225c2e4a2",
+        "width": 1080
+      },
+      "object": "M 29"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_201_M 31_10.0s_IRCUT_20251118-191752_hand_processed.png",
+        "frames": 201,
+        "height": 664,
+        "sha256": "f42c81876b3a358c656036cc025a7eaafe52c4fc69a71924206ea0d2999105a8",
+        "treatment": "hand processed",
+        "width": 373
+      },
+      "captureId": "capture-5b16571c918dce20da225628",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-5b16571c918dce20da225628.jpg",
+        "firstTimestamp": "20251118-182551",
+        "frames": 237,
+        "height": 1920,
+        "inputFingerprint": "25e620d7dc3706987f814deed274aed176444cbc4df2e817ceb0f7140b422ce8",
+        "lastTimestamp": "20251123-192107",
+        "nightCount": 2,
+        "sha256": "c706802fe546f92b62facb7bac5939cf259dc15cb99a4ee713a030c2ff309173",
+        "width": 1080
+      },
+      "object": "M 31"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_191_M 33_10.0s_IRCUT_20251123-200213_cleaned.jpg",
+        "frames": 191,
+        "height": 1920,
+        "sha256": "d32e44cf10f4f559aafe143886d4766d676b8d2c35276dd83ad83f366cf6e5b5",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-d3c75a51ebb7ef058081abcc",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-d3c75a51ebb7ef058081abcc.jpg",
+        "firstTimestamp": "20251123-192202",
+        "frames": 184,
+        "height": 1920,
+        "inputFingerprint": "0693d611ffd83cc4b77ca8225dfe3fc18bd8392399bc6f75da83e1adcc1135bb",
+        "lastTimestamp": "20251223-192852",
+        "nightCount": 2,
+        "sha256": "34f6ddb2539047d2e1c8121e698c2908fd796be56169391ba612f7798131e08e",
+        "width": 1080
+      },
+      "object": "M 33"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_223_M 42_10.0s_LP_20260407-215641_hand_processed.jpg",
+        "frames": 223,
+        "height": 1814,
+        "sha256": "ad88161d3098cb282df15533b22788c3dc5fc588ccc702eb673e6d8cce34c2e1",
+        "treatment": "hand processed",
+        "width": 846
+      },
+      "captureId": "capture-f41a4d989f70b41ab27046fa",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-f41a4d989f70b41ab27046fa.jpg",
+        "firstTimestamp": "20260301-192143",
+        "frames": 469,
+        "height": 1920,
+        "inputFingerprint": "e6508200d051d89746fe1c3ac12f19565e79bb5a3ffe768d1025e5a06562c282",
+        "lastTimestamp": "20260407-215629",
+        "nightCount": 3,
+        "sha256": "5d1e111cf09b53d4438376c5c81fa3f184bd8731574ca07d08997a6280711a91",
+        "width": 1080
+      },
+      "object": "M 42"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_419_M 51_10.0s_IRCUT_20260728-233258_hand_processed.png",
+        "frames": 419,
+        "height": 706,
+        "sha256": "f840ba2895e5bb86a6291b502ef395e7cef2ab9dd697d007046debefb097f35b",
+        "treatment": "hand processed",
+        "width": 443
+      },
+      "captureId": "capture-1af505b15558555f93e30cf7",
+      "curatedDefault": "nightskyai",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-1af505b15558555f93e30cf7.jpg",
+        "firstTimestamp": "20260410-211242",
+        "frames": 407,
+        "height": 1920,
+        "inputFingerprint": "9490c43c6f74355d8534374cd8b2395781bda2515344f707f60a36ec8404a5bf",
+        "lastTimestamp": "20260728-233244",
+        "nightCount": 3,
+        "sha256": "26d1257781a0cb20e68146b35c6bb5fbf9cb35afc15c436e6d836e16bafe45a3",
+        "width": 1080
+      },
+      "object": "M 51"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_162_M 81_10.0s_IRCUT_20260422-220323_hand_processed.jpg",
+        "frames": 162,
+        "height": 1708,
+        "sha256": "c508747dbc8203f19316f1f6f951bf6eabec64f76df12bc015b232a1b1f002dc",
+        "treatment": "hand processed",
+        "width": 833
+      },
+      "captureId": "capture-8648ab6861913f915163e4b2",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-8648ab6861913f915163e4b2.jpg",
+        "firstTimestamp": "20260422-212012",
+        "frames": 148,
+        "height": 1920,
+        "inputFingerprint": "67a7237f967389ada60ec7ca5890f6d3aefd0dc84f18e566f9e6e67a2b4b831f",
+        "lastTimestamp": "20260422-220314",
+        "nightCount": 1,
+        "sha256": "6940a3caf8eb4cee9932ec1763a002a60ca6b9bfba62155a166e8ba004a929ad",
+        "width": 1080
+      },
+      "object": "M 81"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_124_M 92_10.0s_IRCUT_20250915-210455_cleaned.jpg",
+        "frames": 124,
+        "height": 1920,
+        "sha256": "ed8a9fdd7062c67211939875759b9527a8d714d1e1035403e720bef3cc46dd26",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-feb4bdcc7a47682911e0a799",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-feb4bdcc7a47682911e0a799.jpg",
+        "firstTimestamp": "20250820-213539",
+        "frames": 163,
+        "height": 1920,
+        "inputFingerprint": "ab3eb39459a557fd52197d2db0e943c5bf9994c03e0626085b6f3769adac0cb1",
+        "lastTimestamp": "20250915-210445",
+        "nightCount": 2,
+        "sha256": "840b4eb223cff4106524d44551b864830560e05517ebcfe6311aa0ae763cf689",
+        "width": 1080
+      },
+      "object": "M 92"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_150_NGC 281_10.0s_LP_20251123-203503_cleaned.jpg",
+        "frames": 150,
+        "height": 1920,
+        "sha256": "334a8f2a5901f881b46c377d23d8fa7a291d3f65f478d74b9321e9f90aea2f79",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-0cfa907fdf6794655ffff280",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-0cfa907fdf6794655ffff280.jpg",
+        "firstTimestamp": "20251118-195237",
+        "frames": 240,
+        "height": 1920,
+        "inputFingerprint": "737b2e91d517f52d1b8d2dd6be4e2688c601495f3ae2aab7e0ae7ae2fa511471",
+        "lastTimestamp": "20251123-203455",
+        "nightCount": 2,
+        "sha256": "503ad6c999c4626970dddb882e0d576f4b3a24cafcc2588ecef2cd446609a763",
+        "width": 1080
+      },
+      "object": "NGC 281"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_144_NGC 5907_10.0s_IRCUT_20250915-213552_cleaned.jpg",
+        "frames": 144,
+        "height": 1920,
+        "sha256": "af95fa8454fda208666e42a7d8577c25378504422a4e721ad0a3104797e9299b",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-1fbe26570fb621f84e8b4934",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-1fbe26570fb621f84e8b4934.jpg",
+        "firstTimestamp": "20250915-210544",
+        "frames": 121,
+        "height": 1920,
+        "inputFingerprint": "6f1a1c12a9cda8092854bac56e8f994ebe6a5d09c98b9394c890f22bacd4ffd1",
+        "lastTimestamp": "20250915-213536",
+        "nightCount": 1,
+        "sha256": "cbb97bf1856846fe4327e4a0a3ca8a0caa96210431f22e2662cc3ee783652df3",
+        "width": 1080
+      },
+      "object": "NGC 5907"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_269_NGC 6888_10.0s_LP_20250831-224513_hand_processed.png",
+        "frames": 269,
+        "height": 1619,
+        "sha256": "32c3ad5c1ed8c6f62780b38ab366cb530e7a811dc1393d58c7f155840a2eb93f",
+        "treatment": "hand processed",
+        "width": 858
+      },
+      "captureId": "capture-8c814a4d23a565a2d01e9c08",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-8c814a4d23a565a2d01e9c08.jpg",
+        "firstTimestamp": "20250820-221620",
+        "frames": 651,
+        "height": 1920,
+        "inputFingerprint": "a2bf409fb42485bd6967b5842250e694e6252bb0baf929cff0a0141379f8f75a",
+        "lastTimestamp": "20250916-213155",
+        "nightCount": 5,
+        "sha256": "43799df69511bf391fa151e987d7e34a4194952338598f56a88338ebe5379876",
+        "width": 1080
+      },
+      "object": "NGC 6888"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_189_NGC 6946_10.0s_IRCUT_20251009-211135_cleaned.jpg",
+        "frames": 189,
+        "height": 1920,
+        "sha256": "06746c5a749c8661c736fcbf8c25c5c3276273394f001afdc901a3150090ed0a",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-0924f1b666f527e90f2f961f",
+      "curatedDefault": "nightskyai",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-0924f1b666f527e90f2f961f.jpg",
+        "firstTimestamp": "20250820-215350",
+        "frames": 744,
+        "height": 1920,
+        "inputFingerprint": "427e6560f9d9590ee4c98ebecdf14d81bbea5c29bae5d1125b6f4c65f8d83868",
+        "lastTimestamp": "20260923-204308",
+        "nightCount": 7,
+        "sha256": "787e4143a060f56c220c491f6c5bd1c0841b03b8f6198a750f651bc889346d2e",
+        "width": 1080
+      },
+      "object": "NGC 6946"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_277_NGC 6960_10.0s_LP_20260922-221229_cleaned.jpg",
+        "frames": 277,
+        "height": 1920,
+        "sha256": "78e1f9213bb7af686dd50056b16105046496002525e6a790ee5acc58df0d2ca9",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-e333555bb1e17f0a24bb4fde",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-e333555bb1e17f0a24bb4fde.jpg",
+        "firstTimestamp": "20250916-213258",
+        "frames": 416,
+        "height": 1920,
+        "inputFingerprint": "867319816984734bfd76b32ae9615a17d646beef6fc7b1526a7144b046f1e515",
+        "lastTimestamp": "20260922-221220",
+        "nightCount": 2,
+        "sha256": "1ebb550de9b47c16e6b436a7a06e99a124e6111e1276e463a37351d1e275f530",
+        "width": 1080
+      },
+      "object": "NGC 6960"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_240_NGC 6992_10.0s_LP_20250925-213428_cleaned.jpg",
+        "frames": 240,
+        "height": 1920,
+        "sha256": "7a7b84143af950f6e82de9bc2d370525f939ce5f6ad42df003d6b997fbfe7da4",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-6dcfe0455b6f697e22c16e86",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-6dcfe0455b6f697e22c16e86.jpg",
+        "firstTimestamp": "20250925-203806",
+        "frames": 456,
+        "height": 1920,
+        "inputFingerprint": "c05485fe23d9ce11f143e5f677f2e6efa47eee4ca6ef86dfa97b5983519c7725",
+        "lastTimestamp": "20250926-215532",
+        "nightCount": 2,
+        "sha256": "161c73fcad21e13724f51f62020cccbc5bced05903745a41355d8762902e47f2",
+        "width": 1080
+      },
+      "object": "NGC 6992"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_240_NGC 7023_10.0s_IRCUT_20250925-222538_cleaned.jpg",
+        "frames": 240,
+        "height": 1920,
+        "sha256": "6015160b40994caf11b85a1b1c929a8b8d2bcfad557e10ee2ac13cca9401ddc5",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-d57985adbd2b14416d24aa6f",
+      "curatedDefault": "nightskyai",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-d57985adbd2b14416d24aa6f.jpg",
+        "firstTimestamp": "20250830-212501",
+        "frames": 454,
+        "height": 1920,
+        "inputFingerprint": "6987b7ae99ca3f55ff1bd63e8fff0477368dfddba566584ef1d25efecb734547",
+        "lastTimestamp": "20250925-222529",
+        "nightCount": 2,
+        "sha256": "e9cbad8d36ec08981303ea5714584b38980c849a58626adcb9a798d01206a645",
+        "width": 1080
+      },
+      "object": "NGC 7023"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_63_NGC 7331_10.0s_IRCUT_20251009-220208_cleaned.jpg",
+        "frames": 63,
+        "height": 1920,
+        "sha256": "e6c9b8eaa0ad906420c68e13d184e1fcdf60fa8e5875ab6a1d1d2a780ff19bec",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-ae38612f22b6b5bfa1f47400",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "saved-choice",
+      "exposure": "10",
+      "filter": "IRCUT",
+      "nightSkyAI": {
+        "filename": "images/capture-ae38612f22b6b5bfa1f47400.jpg",
+        "firstTimestamp": "20251009-214805",
+        "frames": 116,
+        "height": 1920,
+        "inputFingerprint": "b413ad501f76f5d8212b77401b34be4463d21718262e690578f0dc9e0deb9c5f",
+        "lastTimestamp": "20251118-195113",
+        "nightCount": 2,
+        "sha256": "2255e06cf8a980552c753ae181662c86197d73ee369d9634cb35ae508593dd8d",
+        "width": 1080
+      },
+      "object": "NGC 7331"
+    },
+    {
+      "baseline": {
+        "filename": "Stacked_144_SH2-142_20.0s_LP_20260923-230000_cleaned.jpg",
+        "frames": 144,
+        "height": 1920,
+        "sha256": "759cd21915c48428b4645340f707ea95c89bb6980f51d93c08229e10e55ee93a",
+        "treatment": "cleaned",
+        "width": 1080
+      },
+      "captureId": "capture-080d62392ab5c3c36e18b2bc",
+      "curatedDefault": "seestar",
+      "curatedDefaultSource": "candidate-changed-default",
+      "exposure": "20",
+      "filter": "LP",
+      "nightSkyAI": {
+        "filename": "images/capture-080d62392ab5c3c36e18b2bc.jpg",
+        "firstTimestamp": "20260923-220139",
+        "frames": 144,
+        "height": 1920,
+        "inputFingerprint": "8ecc344f6f999a12a3e375cfb23ed3dc805a6824bd3ef672dcc1b8f3a4f67035",
+        "lastTimestamp": "20260923-225939",
+        "nightCount": 1,
+        "sha256": "1910ef1474aef8d1ee21fecfc19b17af5e604dedb4c10c2005e4243ab1aa333c",
+        "width": 1080
+      },
+      "object": "SH2-142"
+    }
+  ]
+}
