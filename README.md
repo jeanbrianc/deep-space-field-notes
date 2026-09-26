@@ -21,8 +21,8 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Explains what the viewer is seeing in approachable field notes.
 - Preserves useful observing context, including frame count, exposure, filter, date, and processing method.
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
-- Opens with a scrollable walk into a Northern Michigan observing night before
-  the first field note appears.
+- Opens with a concise Northern Michigan welcome and a cinematic,
+  button-driven zoom into the observatory—without a long introductory scroll.
 - Shows one owner-selected final treatment per observation, chosen from the
   Gallery edit and the aligned NightSkyAI restack when both exist.
 - Uses a cinematic observatory setting to keep the viewer grounded beneath the

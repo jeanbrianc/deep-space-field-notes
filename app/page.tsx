@@ -172,6 +172,7 @@ function parseCapture(file: string): Capture {
 const captures = imageFiles.map(parseCapture).sort((a, b) => a.title.localeCompare(b.title));
 
 type Phase = "focused" | "pullback" | "traveling" | "arriving";
+type EntrancePhase = "ready" | "entering" | "entered";
 
 function publicImageUrl(path: string) {
   return path.startsWith("/") ? path : `/images/${encodeURIComponent(path)}`;
@@ -229,10 +230,9 @@ export default function Home() {
   const [originIndex, setOriginIndex] = useState(initial);
   const [targetIndex, setTargetIndex] = useState(initial);
   const [phase, setPhase] = useState<Phase>("focused");
-  const [entryStep, setEntryStep] = useState(0);
+  const [entrancePhase, setEntrancePhase] = useState<EntrancePhase>("ready");
   const [galleryInView, setGalleryInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const entryBeatRefs = useRef<Array<HTMLElement | null>>([]);
   const galleryRef = useRef<HTMLElement | null>(null);
   const touchPoint = useRef<{ x: number; y: number } | null>(null);
   const capture = captures[index];
@@ -289,19 +289,18 @@ export default function Home() {
   }, [index]);
 
   useEffect(() => {
-    if (!("IntersectionObserver" in window)) return;
-    const beats = entryBeatRefs.current.filter((beat): beat is HTMLElement => beat !== null);
-    const observer = new IntersectionObserver((entries) => {
-      const active = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (!active) return;
-      const step = Number((active.target as HTMLElement).dataset.entryStep);
-      if (Number.isInteger(step)) setEntryStep(step);
-    }, { rootMargin: "-22% 0px -42%", threshold: [0.15, 0.35, 0.6] });
-    beats.forEach((beat) => observer.observe(beat));
-    return () => observer.disconnect();
-  }, []);
+    if (entrancePhase !== "entering") return;
+    const timer = window.setTimeout(() => setEntrancePhase("entered"), reducedMotion ? 0 : 1100);
+    return () => window.clearTimeout(timer);
+  }, [entrancePhase, reducedMotion]);
+
+  useEffect(() => {
+    if (entrancePhase !== "entered") return;
+    const frame = window.requestAnimationFrame(() => {
+      galleryRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [entrancePhase]);
 
   useEffect(() => {
     const gallery = galleryRef.current;
@@ -327,13 +326,21 @@ export default function Home() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.repeat || !galleryInView) return;
+      if (event.repeat || entrancePhase !== "entered" || !galleryInView) return;
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      if (target?.closest("button, a, input, select, textarea, [contenteditable='true']")) return;
       if (event.key === "ArrowLeft") move(-1);
       if (event.key === "ArrowRight") move(1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [galleryInView, move]);
+  }, [entrancePhase, galleryInView, move]);
+
+  const startExploring = useCallback(() => {
+    if (entrancePhase !== "ready") return;
+    const shouldReduceMotion = reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setEntrancePhase(shouldReduceMotion ? "entered" : "entering");
+  }, [entrancePhase, reducedMotion]);
 
   const progress = useMemo(() => `${String(index + 1).padStart(2, "0")} / ${String(captures.length).padStart(2, "0")}`, [index]);
   const fromPoint = skyPoint(origin);
@@ -352,71 +359,60 @@ export default function Home() {
         : `Viewing ${capture.title}`;
 
   return (
-    <main className="site-shell">
-      <a className="skip-link" href="#field-notes">Skip introduction</a>
+    <main className={`site-shell site-${entrancePhase}`}>
+      {entrancePhase !== "entered" && (
+        <button className="skip-link" type="button" onClick={() => setEntrancePhase("entered")}>Skip introduction</button>
+      )}
 
-      <section className={`observatory-entry entry-step-${entryStep}`} aria-labelledby="entry-title">
-        <div className="entry-scene" aria-hidden="true">
-          <div className="entry-sky" />
-          <div className="entry-grid" />
-          <div className="entry-aperture"><i /></div>
-          <div className="entry-masthead">
-            <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
-            <span>Northern Michigan Observatory Journal</span>
+      {entrancePhase !== "entered" && (
+        <section
+          className={`observatory-entry entrance-${entrancePhase}`}
+          aria-labelledby="entry-title"
+          onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget && entrancePhase === "entering") {
+              setEntrancePhase("entered");
+            }
+          }}
+        >
+          <div className="entry-scene" aria-hidden="true">
+            <div className="entry-sky" />
+            <div className="entry-grid" />
+            <div className="entry-aperture"><i /></div>
+            <div className="entry-masthead">
+              <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
+              <span>Northern Michigan Observatory Journal</span>
+            </div>
           </div>
-          <ol className="entry-ledger">
-            <li><i />01 · Place</li>
-            <li><i />02 · Light</li>
-            <li><i />03 · Field notes</li>
-          </ol>
-        </div>
 
-        <div className="entry-story">
-          <section
-            className="entry-beat entry-beat-opening"
-            data-entry-step="0"
-            ref={(node) => { entryBeatRefs.current[0] = node; }}
-          >
+          <div className="entry-welcome">
             <div className="entry-copy">
               <p className="entry-kicker">Northern Michigan · 45.1° N</p>
               <h1 id="entry-title">A small telescope under a very large sky.</h1>
               <p>Deep Space Field Notes is a personal observatory journal of nebulae, galaxies, and star clusters captured from Northern Michigan. Every image began here, outside, beneath this horizon.</p>
-              <span className="entry-scroll-cue" aria-hidden="true"><i />Walk toward the telescope</span>
-            </div>
-          </section>
 
-          <section
-            className="entry-beat entry-beat-process"
-            data-entry-step="1"
-            ref={(node) => { entryBeatRefs.current[1] = node; }}
-          >
-            <div className="entry-copy">
-              <p className="entry-kicker">50+ frames · every published field</p>
-              <h2>Faint light, gathered patiently.</h2>
-              <p>One short exposure holds more noise than wonder. Aligning and stacking dozens—or hundreds—of frames lets the real signal accumulate: dust lanes, stellar nurseries, and the soft edges of distant galaxies.</p>
-            </div>
-          </section>
+              <dl className="entry-proof" aria-label="About this observatory journal">
+                <div><dt>Captured here</dt><dd>Northern Michigan nights</dd></div>
+                <div><dt>Light gathered</dt><dd>50+ frames · every published field</dd></div>
+                <div><dt>Inside the archive</dt><dd>{captures.length} selected observations</dd></div>
+              </dl>
 
-          <section
-            className="entry-beat entry-beat-invitation"
-            data-entry-step="2"
-            ref={(node) => { entryBeatRefs.current[2] = node; }}
-          >
-            <div className="entry-copy">
-              <p className="entry-kicker">{captures.length} selected observations</p>
-              <h2>Cross the sky one field note at a time.</h2>
-              <p>Each stop pairs the personally selected final image with its constellation, capture details, and a concise story about the light in the frame. Use the controls, arrow keys, or a swipe to travel.</p>
-              <a className="entry-cta" href="#field-notes">Enter the observatory <span aria-hidden="true">↓</span></a>
+              <button className="entry-cta" type="button" onClick={startExploring} aria-controls="field-notes">
+                Start exploring <span aria-hidden="true">→</span>
+              </button>
+              <p className="entry-instruction">Enter the observatory, then use the controls, arrow keys, or a swipe to travel.</p>
             </div>
-          </section>
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <section
         id="field-notes"
         ref={galleryRef}
         tabIndex={-1}
-        className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}`}
+        aria-label="Deep Space Field Notes observatory gallery"
+        inert={entrancePhase !== "entered"}
+        aria-hidden={entrancePhase !== "entered"}
+        className={`gallery-shell${entrancePhase === "entered" && galleryInView ? " gallery-is-visible" : ""}`}
         onTouchStart={(event) => {
           touchPoint.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }}
