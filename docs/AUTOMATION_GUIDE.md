@@ -627,6 +627,12 @@ manifest. It records the selected source, review pair ID, and selection time;
 the image files, hashes, alignment evidence, and bundle creation time remain
 unchanged.
 
+The registered NightSkyAI derivative remains the like-for-like review and
+audit surface. Once an owner choice is public, the single-image journal uses
+the unchanged full-field NightSkyAI source recorded by
+`nightSkyAI.alignment.sourceFilename`, preserving its upright 1080 × 1920
+portrait without the black borders introduced by comparison registration.
+
 Then validate everything:
 
 ```bash

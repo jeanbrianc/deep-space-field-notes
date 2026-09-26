@@ -23,8 +23,10 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
 - Opens with a concise Northern Michigan welcome and a cinematic,
   button-driven zoom into the observatory—without a long introductory scroll.
+- Keeps the capture process in an optional explainer that shows how Seestar
+  tracks, records 10–20 second frames, aligns them, and stacks faint light.
 - Shows one owner-selected final treatment per observation, chosen from the
-  Gallery edit and the aligned NightSkyAI restack when both exist.
+  Gallery edit and the NightSkyAI restack when both exist.
 - Uses a cinematic observatory setting to keep the viewer grounded beneath the
   same sky where the images were captured.
 
@@ -80,7 +82,9 @@ poll.
 NightSkyAI can combine more accepted frames across multiple observing nights,
 so each review compares complete results rather than claiming to be a
 controlled same-light processing test. When a NightSkyAI treatment is selected,
-the public field note reports its combined frame count and observation span.
+the public field note reports its combined frame count and observation span,
+and displays the native full-field portrait rather than the registered review
+derivative.
 
 Before publication, a deterministic star-pattern audit detects rotation,
 reflection, scale, and framing differences in every pair. The Gallery edit is
@@ -92,8 +96,9 @@ NightSkyAI export remains unchanged alongside the derivative, and the audit
 records hashes, the fitted transform, matched-star evidence, and a second-pass
 verification result. Newly aligned comparisons default to the Gallery edit
 until they are reviewed again. Both source treatments and their provenance stay
-in the versioned comparison bundle even though the public journal displays only
-the selected treatment.
+in the versioned comparison bundle. The registered derivative remains the fair
+pair-review surface; the public journal displays only the selected treatment,
+using the original upright NightSkyAI field when that treatment wins.
 
 The owner can separately open all 28 tracked pairs in the local
 `review-public` desk and choose which treatment should eventually represent

@@ -180,7 +180,7 @@ function publicImageUrl(path: string) {
 
 function curatedImage(capture: Capture) {
   const comparison = capture.comparison;
-  if (comparison?.curatedDefault === "nightskyai") return comparison.nightskyaiImage;
+  if (comparison?.curatedDefault === "nightskyai") return comparison.nightskyaiFullFieldImage;
   return comparison?.seestarImage ?? capture.file;
 }
 
@@ -243,11 +243,11 @@ export default function Home() {
   const activeImage = curatedImage(capture);
   const activeFrames = comparison && isNightSkyAI ? comparison.nightskyaiFrames : capture.frames;
   const activeProvenance = comparison && isNightSkyAI
-    ? (comparison.isGalleryAligned ? "NightSkyAI · aligned to Gallery" : "NightSkyAI restack")
+    ? "NightSkyAI · selected full-field stack"
     : capture.provenance;
-  // Gallery-aligned NightSkyAI winners share the reference dimensions, so the
-  // viewing window remains stable without exposing a public treatment switch.
-  const activeRatio = capture.imageRatio;
+  const activeRatio = comparison && isNightSkyAI
+    ? comparison.nightskyaiFullFieldRatio
+    : capture.imageRatio;
 
   const move = useCallback((delta: number) => {
     if (phase !== "focused") return;
@@ -388,18 +388,30 @@ export default function Home() {
             <div className="entry-copy">
               <p className="entry-kicker">Northern Michigan · 45.1° N</p>
               <h1 id="entry-title">A small telescope under a very large sky.</h1>
-              <p>Deep Space Field Notes is a personal observatory journal of nebulae, galaxies, and star clusters captured from Northern Michigan. Every image began here, outside, beneath this horizon.</p>
-
-              <dl className="entry-proof" aria-label="About this observatory journal">
-                <div><dt>Captured here</dt><dd>Northern Michigan nights</dd></div>
-                <div><dt>Light gathered</dt><dd>50+ frames · every published field</dd></div>
-                <div><dt>Inside the archive</dt><dd>{captures.length} selected observations</dd></div>
-              </dl>
+              <p>A personal field journal of nebulae, galaxies, and star clusters captured from Northern Michigan—one short exposure at a time.</p>
 
               <button className="entry-cta" type="button" onClick={startExploring} aria-controls="field-notes">
                 Start exploring <span aria-hidden="true">→</span>
               </button>
               <p className="entry-instruction">Enter the observatory, then use the controls, arrow keys, or a swipe to travel.</p>
+
+              <details className="entry-method">
+                <summary>
+                  <span>How a Seestar image is made</span>
+                  <small>10–20 second frames · aligned and stacked</small>
+                </summary>
+                <div className="entry-method-body">
+                  <p className="entry-method-lede">Each photograph begins as a sequence, not a single shutter click.</p>
+                  <ol className="entry-method-steps">
+                    <li><span>01</span><div><strong>Find and track</strong><p>The Seestar centers the chosen field and follows it as Earth turns.</p></div></li>
+                    <li><span>02</span><div><strong>Gather short exposures</strong><p>It records dozens or hundreds of 10- or 20-second frames instead of one long exposure.</p></div></li>
+                    <li><span>03</span><div><strong>Select usable frames</strong><p>Blurred, trailed, clouded, or obstructed frames can be left out of the final stack.</p></div></li>
+                    <li><span>04</span><div><strong>Align and stack</strong><p>Matching stars register every frame to the same sky position. Consistent light builds while random noise averages down.</p></div></li>
+                    <li><span>05</span><div><strong>Finish conservatively</strong><p>A restrained stretch, background and color balance, and light noise reduction reveal the recorded signal without inventing celestial detail.</p></div></li>
+                  </ol>
+                  <p className="entry-method-note">Every published field contains at least 50 stacked frames, and the displayed version is selected by hand.</p>
+                </div>
+              </details>
             </div>
           </div>
         </section>

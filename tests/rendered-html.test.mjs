@@ -25,6 +25,10 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /Skip introduction/);
   assert.match(page, /className="skip-link" type="button" onClick=\{\(\) => setEntrancePhase\("entered"\)\}/);
   assert.match(page, /Start exploring/);
+  assert.match(page, /<details className="entry-method">/);
+  assert.match(page, /How a Seestar image is made/);
+  assert.match(page, /10- or 20-second frames/);
+  assert.match(page, /Align and stack/);
   assert.match(page, /startExploring/);
   assert.match(page, /type="button" onClick=\{startExploring\} aria-controls="field-notes"/);
   assert.match(page, /entrancePhase/);
@@ -35,8 +39,7 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /inert=\{entrancePhase !== "entered"\}/);
   assert.doesNotMatch(page, /entryStep|entryBeatRefs|data-entry-step/);
   assert.match(page, /IntersectionObserver/);
-  assert.match(page, /selected observations/);
-  assert.match(page, /50\+ frames · every published field/i);
+  assert.match(page, /at least 50 stacked frames/i);
   assert.match(page, /"traveling"/);
   assert.match(page, /raDeg/);
   assert.match(page, /Apparent position · J2000/);
@@ -45,6 +48,10 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /© Brian Jean/);
   assert.match(page, /curatedDefault/);
   assert.match(page, /isNightSkyAI/);
+  assert.match(page, /nightskyaiFullFieldImage/);
+  assert.match(page, /nightskyaiFullFieldRatio/);
+  assert.match(page, /NightSkyAI · selected full-field stack/);
+  assert.doesNotMatch(page, /NightSkyAI · aligned to Gallery/);
   assert.match(page, /Observation span/);
   assert.match(page, /formatObservationSpan/);
   assert.doesNotMatch(page, /Processing view|Which treatment earns the sky|Informal browser poll/);
@@ -57,7 +64,12 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(css, /\.observatory-entry/);
   assert.match(css, /\.entry-scene/);
   assert.match(css, /\.entry-welcome/);
-  assert.match(css, /\.entry-proof/);
+  assert.match(css, /\.entry-method/);
+  assert.match(css, /\.entry-welcome:has\(\.entry-method\[open\]\)/);
+  assert.doesNotMatch(css, /\.entry-proof/);
+  assert.match(css, /@keyframes entryDrift/);
+  assert.match(css, /@keyframes apertureBreathe/);
+  assert.match(css, /object-position: 50% 50%/);
   assert.match(css, /@keyframes entranceIris/);
   assert.match(css, /@keyframes entranceZoom/);
   assert.match(css, /@keyframes observatoryArrival/);
@@ -112,6 +124,8 @@ test("public comparisons preserve full-field sources and ship verified Gallery-a
   assert.match(registry, /nightskyNightCount/);
   assert.match(registry, /comparisonId/);
   assert.match(registry, /isGalleryAligned/);
+  assert.match(registry, /nightskyaiFullFieldImage/);
+  assert.match(registry, /sourceFilename/);
   assert.ok(manifest.captures.every((capture) => capture.baseline.frames >= 50 && capture.nightSkyAI.frames >= 50));
   for (const capture of manifest.captures) {
     const expectedComparisonId = `comparison-${createHash("sha256")
@@ -128,6 +142,7 @@ test("public comparisons preserve full-field sources and ship verified Gallery-a
       [capture.nightSkyAI.alignment.sourceWidth, capture.nightSkyAI.alignment.sourceHeight],
       [1080, 1920]
     );
+    assert.ok(capture.nightSkyAI.alignment.sourceWidth < capture.nightSkyAI.alignment.sourceHeight);
     assert.equal(capture.nightSkyAI.alignment.referencePolicy, "gallery-edit-is-immutable");
     assert.equal(capture.nightSkyAI.alignment.mode, "registered-to-gallery-edit");
     assert.equal(capture.nightSkyAI.alignment.verification.passed, true);

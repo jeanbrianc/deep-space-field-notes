@@ -8,6 +8,8 @@ export type CaptureComparison = Readonly<{
   target: string;
   seestarImage: string;
   nightskyaiImage: string;
+  nightskyaiFullFieldImage: string;
+  nightskyaiFullFieldRatio: number;
   seestarFrames: number;
   nightskyaiFrames: number;
   nightskyFirstTimestamp: string;
@@ -29,6 +31,8 @@ type PublicComparisonRecord = Readonly<{
   nightSkyAI: Readonly<{
     filename: string;
     frames: number;
+    width: number;
+    height: number;
     firstTimestamp: string;
     lastTimestamp: string;
     nightCount: number;
@@ -36,6 +40,9 @@ type PublicComparisonRecord = Readonly<{
     alignment?: Readonly<{
       mode: string;
       referencePolicy: string;
+      sourceFilename: string;
+      sourceWidth: number;
+      sourceHeight: number;
     }>;
   }>;
   curatedDefault: string;
@@ -50,23 +57,34 @@ function voteChoice(value: string): VoteChoice {
 // vote API. This prevents media, metadata, and accepted vote IDs from drifting.
 export const comparisons: readonly CaptureComparison[] = (
   comparisonManifest.captures as readonly PublicComparisonRecord[]
-).map((capture) => ({
-  captureId: capture.captureId,
-  comparisonId: capture.comparisonId,
-  target: capture.object,
-  seestarImage: capture.baseline.filename,
-  nightskyaiImage: `/comparisons/${capture.nightSkyAI.filename}`,
-  seestarFrames: capture.baseline.frames,
-  nightskyaiFrames: capture.nightSkyAI.frames,
-  nightskyFirstTimestamp: capture.nightSkyAI.firstTimestamp,
-  nightskyLastTimestamp: capture.nightSkyAI.lastTimestamp,
-  nightskyNightCount: capture.nightSkyAI.nightCount,
-  curatedDefault: voteChoice(capture.curatedDefault),
-  inputFingerprint: capture.nightSkyAI.inputFingerprint,
-  isGalleryAligned:
-    capture.nightSkyAI.alignment?.mode === "registered-to-gallery-edit" &&
-    capture.nightSkyAI.alignment?.referencePolicy === "gallery-edit-is-immutable",
-}));
+).map((capture) => {
+  const alignment = capture.nightSkyAI.alignment;
+  const fullFieldFilename = alignment?.sourceFilename ?? capture.nightSkyAI.filename;
+  const fullFieldWidth = alignment?.sourceWidth ?? capture.nightSkyAI.width;
+  const fullFieldHeight = alignment?.sourceHeight ?? capture.nightSkyAI.height;
+
+  return {
+    captureId: capture.captureId,
+    comparisonId: capture.comparisonId,
+    target: capture.object,
+    seestarImage: capture.baseline.filename,
+    // Keep the registered derivative for reproducible pair review, but show
+    // the native portrait source when a single NightSkyAI treatment is public.
+    nightskyaiImage: `/comparisons/${capture.nightSkyAI.filename}`,
+    nightskyaiFullFieldImage: `/comparisons/${fullFieldFilename}`,
+    nightskyaiFullFieldRatio: fullFieldWidth / fullFieldHeight,
+    seestarFrames: capture.baseline.frames,
+    nightskyaiFrames: capture.nightSkyAI.frames,
+    nightskyFirstTimestamp: capture.nightSkyAI.firstTimestamp,
+    nightskyLastTimestamp: capture.nightSkyAI.lastTimestamp,
+    nightskyNightCount: capture.nightSkyAI.nightCount,
+    curatedDefault: voteChoice(capture.curatedDefault),
+    inputFingerprint: capture.nightSkyAI.inputFingerprint,
+    isGalleryAligned:
+      alignment?.mode === "registered-to-gallery-edit" &&
+      alignment?.referencePolicy === "gallery-edit-is-immutable",
+  };
+});
 
 const comparisonIds = new Set(
   comparisons.map((comparison) => comparison.comparisonId)
