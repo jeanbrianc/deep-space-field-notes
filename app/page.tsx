@@ -172,7 +172,6 @@ function parseCapture(file: string): Capture {
 const captures = imageFiles.map(parseCapture).sort((a, b) => a.title.localeCompare(b.title));
 
 type Phase = "focused" | "pullback" | "traveling" | "arriving";
-type EntrancePhase = "ready" | "entering" | "entered";
 
 function publicImageUrl(path: string) {
   return path.startsWith("/") ? path : `/images/${encodeURIComponent(path)}`;
@@ -230,7 +229,6 @@ export default function Home() {
   const [originIndex, setOriginIndex] = useState(initial);
   const [targetIndex, setTargetIndex] = useState(initial);
   const [phase, setPhase] = useState<Phase>("focused");
-  const [entrancePhase, setEntrancePhase] = useState<EntrancePhase>("ready");
   const [galleryInView, setGalleryInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const galleryRef = useRef<HTMLElement | null>(null);
@@ -289,20 +287,6 @@ export default function Home() {
   }, [index]);
 
   useEffect(() => {
-    if (entrancePhase !== "entering") return;
-    const timer = window.setTimeout(() => setEntrancePhase("entered"), reducedMotion ? 0 : 1100);
-    return () => window.clearTimeout(timer);
-  }, [entrancePhase, reducedMotion]);
-
-  useEffect(() => {
-    if (entrancePhase !== "entered") return;
-    const frame = window.requestAnimationFrame(() => {
-      galleryRef.current?.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [entrancePhase]);
-
-  useEffect(() => {
     const gallery = galleryRef.current;
     if (!gallery) return;
     if (!("IntersectionObserver" in window)) {
@@ -326,7 +310,7 @@ export default function Home() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.repeat || entrancePhase !== "entered" || !galleryInView) return;
+      if (event.repeat || !galleryInView) return;
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.closest("button, a, input, select, textarea, [contenteditable='true']")) return;
       if (event.key === "ArrowLeft") move(-1);
@@ -334,13 +318,7 @@ export default function Home() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [entrancePhase, galleryInView, move]);
-
-  const startExploring = useCallback(() => {
-    if (entrancePhase !== "ready") return;
-    const shouldReduceMotion = reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setEntrancePhase(shouldReduceMotion ? "entered" : "entering");
-  }, [entrancePhase, reducedMotion]);
+  }, [galleryInView, move]);
 
   const progress = useMemo(() => `${String(index + 1).padStart(2, "0")} / ${String(captures.length).padStart(2, "0")}`, [index]);
   const fromPoint = skyPoint(origin);
@@ -359,72 +337,13 @@ export default function Home() {
         : `Viewing ${capture.title}`;
 
   return (
-    <main className={`site-shell site-${entrancePhase}`}>
-      {entrancePhase !== "entered" && (
-        <button className="skip-link" type="button" onClick={() => setEntrancePhase("entered")}>Skip introduction</button>
-      )}
-
-      {entrancePhase !== "entered" && (
-        <section
-          className={`observatory-entry entrance-${entrancePhase}`}
-          aria-labelledby="entry-title"
-          onAnimationEnd={(event) => {
-            if (event.target === event.currentTarget && entrancePhase === "entering") {
-              setEntrancePhase("entered");
-            }
-          }}
-        >
-          <div className="entry-scene" aria-hidden="true">
-            <div className="entry-sky" />
-            <div className="entry-grid" />
-            <div className="entry-aperture"><i /></div>
-            <div className="entry-masthead">
-              <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
-              <span>Northern Michigan Observatory Journal</span>
-            </div>
-          </div>
-
-          <div className="entry-welcome">
-            <div className="entry-copy">
-              <p className="entry-kicker">Northern Michigan · 45.1° N</p>
-              <h1 id="entry-title">A small telescope under a very large sky.</h1>
-              <p>A personal field journal of nebulae, galaxies, and star clusters captured from Northern Michigan—one short exposure at a time.</p>
-
-              <button className="entry-cta" type="button" onClick={startExploring} aria-controls="field-notes">
-                Start exploring <span aria-hidden="true">→</span>
-              </button>
-              <p className="entry-instruction">Enter the observatory, then use the controls, arrow keys, or a swipe to travel.</p>
-
-              <details className="entry-method">
-                <summary>
-                  <span>How a Seestar image is made</span>
-                  <small>10–20 second frames · aligned and stacked</small>
-                </summary>
-                <div className="entry-method-body">
-                  <p className="entry-method-lede">Each photograph begins as a sequence, not a single shutter click.</p>
-                  <ol className="entry-method-steps">
-                    <li><span>01</span><div><strong>Find and track</strong><p>The Seestar centers the chosen field and follows it as Earth turns.</p></div></li>
-                    <li><span>02</span><div><strong>Gather short exposures</strong><p>It records dozens or hundreds of 10- or 20-second frames instead of one long exposure.</p></div></li>
-                    <li><span>03</span><div><strong>Select usable frames</strong><p>Blurred, trailed, clouded, or obstructed frames can be left out of the final stack.</p></div></li>
-                    <li><span>04</span><div><strong>Align and stack</strong><p>Matching stars register every frame to the same sky position. Consistent light builds while random noise averages down.</p></div></li>
-                    <li><span>05</span><div><strong>Finish conservatively</strong><p>A restrained stretch, background and color balance, and light noise reduction reveal the recorded signal without inventing celestial detail.</p></div></li>
-                  </ol>
-                  <p className="entry-method-note">Every published field contains at least 50 stacked frames, and the displayed version is selected by hand.</p>
-                </div>
-              </details>
-            </div>
-          </div>
-        </section>
-      )}
-
+    <main className="site-shell">
       <section
         id="field-notes"
         ref={galleryRef}
         tabIndex={-1}
         aria-label="Deep Space Field Notes observatory gallery"
-        inert={entrancePhase !== "entered"}
-        aria-hidden={entrancePhase !== "entered"}
-        className={`gallery-shell${entrancePhase === "entered" && galleryInView ? " gallery-is-visible" : ""}`}
+        className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}`}
         onTouchStart={(event) => {
           touchPoint.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }}
@@ -470,7 +389,7 @@ export default function Home() {
           <aside className="observation-rail">
             <article className="telemetry">
               <p className="eyebrow">Observation · {capture.object}</p>
-              <h2>{capture.title}</h2>
+              <h1>{capture.title}</h1>
               <p className="provenance">{activeProvenance}</p>
               <dl>
                 <div><dt>Constellation</dt><dd>{capture.constellation}</dd></div>

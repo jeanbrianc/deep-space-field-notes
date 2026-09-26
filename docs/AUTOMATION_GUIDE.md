@@ -657,8 +657,9 @@ with Sites happens only after that validation succeeds, using the Sites skill
 or Sites product workflow. Keep the release public if that is the site's
 intended access level, deploy the exact reviewed Git revision, and open the
 deployed URL for a read-only smoke test.
-Navigate through several owner-selected observations and check the entrance,
-keyboard controls, mobile swipe behavior, and desktop layout.
+Open the initial observatory view, navigate through several owner-selected
+observations, and check keyboard controls, mobile swipe behavior, and desktop
+layout.
 
 ## Recovery and decision points
 
