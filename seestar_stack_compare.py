@@ -29,6 +29,8 @@ from urllib.parse import urlparse
 
 TOOL_NAME = "seestar_stack_compare"
 CHOICES_SCHEMA_VERSION = 1
+PUBLIC_REVIEW_TOOL_NAME = "seestar_public_comparison_review"
+PUBLIC_REVIEW_CHOICES_SCHEMA_VERSION = 1
 CULL_TOOL_NAME = "seestar_gallery_cull"
 CULL_CHOICES_SCHEMA_VERSION = 1
 CULL_GROUPS_SCHEMA_VERSION = 1
@@ -50,6 +52,7 @@ SITE_FILENAME = re.compile(
     re.IGNORECASE,
 )
 CATALOG_NUMBER = re.compile(r"^(M|NGC|IC|C|SH2)[ -]?(\d+[A-Z]?)$", re.IGNORECASE)
+SHA256_VALUE = re.compile(r"^[0-9a-f]{64}$")
 
 
 @dataclass(frozen=True)
@@ -741,6 +744,332 @@ def build_pairs(
     return pairs, unpaired_site, unpaired_local
 
 
+def _positive_manifest_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError(f"{label} must be a positive integer")
+    return value
+
+
+def _manifest_sha256(value: object, label: str) -> str:
+    if not isinstance(value, str) or not SHA256_VALUE.fullmatch(value):
+        raise ValueError(f"{label} must be a lowercase SHA-256 digest")
+    return value
+
+
+def _public_manifest_file(root: Path, raw_path: object, label: str) -> Path:
+    if not isinstance(raw_path, str) or not raw_path:
+        raise ValueError(f"{label} must name a file")
+    relative = Path(raw_path)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError(f"{label} must stay inside {root}")
+    unresolved = root / relative
+    if unresolved.is_symlink():
+        raise ValueError(f"{label} may not be a symbolic link")
+    resolved_root = root.resolve()
+    resolved = unresolved.resolve()
+    if not _is_relative_to(resolved, resolved_root):
+        raise ValueError(f"{label} resolves outside {root}")
+    if not resolved.is_file():
+        raise ValueError(f"{label} is missing: {resolved}")
+    return resolved
+
+
+def _verify_manifest_image(
+    path: Path,
+    record: dict[str, object],
+    label: str,
+    *,
+    sha_key: str = "sha256",
+    width_key: str = "width",
+    height_key: str = "height",
+) -> tuple[str, int, int]:
+    declared_sha256 = _manifest_sha256(record.get(sha_key), f"{label}.{sha_key}")
+    declared_width = _positive_manifest_integer(record.get(width_key), f"{label}.{width_key}")
+    declared_height = _positive_manifest_integer(record.get(height_key), f"{label}.{height_key}")
+    actual_sha256 = sha256_file(path)
+    if actual_sha256 != declared_sha256:
+        raise ValueError(f"{label} checksum does not match its manifest")
+    actual_width, actual_height = image_dimensions(path)
+    if (actual_width, actual_height) != (declared_width, declared_height):
+        raise ValueError(
+            f"{label} dimensions do not match its manifest: "
+            f"{actual_width}x{actual_height} versus "
+            f"{declared_width}x{declared_height}"
+        )
+    return actual_sha256, actual_width, actual_height
+
+
+def load_public_comparison_pairs(gallery: Path) -> list[ComparisonPair]:
+    """Load the already-published, alignment-verified comparison inventory.
+
+    This deliberately reads the checked-in public manifest rather than
+    rediscovering raw Siril runs. Every declared image checksum, dimension, and
+    frame count is validated before a review pair is exposed.
+    """
+
+    resolved_gallery = gallery.expanduser().resolve()
+    manifest_path = resolved_gallery / "public" / "comparisons" / "manifest.json"
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read public comparison manifest {manifest_path}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"public comparison manifest root must be an object: {manifest_path}")
+    if payload.get("schemaVersion") != 2 or payload.get("tool") != TOOL_NAME:
+        raise ValueError(f"public comparison manifest tool or schema is not recognized: {manifest_path}")
+    captures = payload.get("captures")
+    if not isinstance(captures, list):
+        raise ValueError("public comparison manifest captures must be a list")
+    capture_count = _positive_manifest_integer(
+        payload.get("captureCount"), "public comparison manifest captureCount"
+    )
+    if capture_count != len(captures):
+        raise ValueError(
+            "public comparison manifest captureCount does not match its captures"
+        )
+
+    image_root = resolved_gallery / "public" / "images"
+    comparison_root = resolved_gallery / "public" / "comparisons"
+    current_catalog = set(site_catalog_filenames(resolved_gallery))
+    created_at = str(payload.get("createdAt", ""))
+    pairs: list[ComparisonPair] = []
+    seen_capture_ids: set[str] = set()
+    seen_comparison_ids: set[str] = set()
+    seen_baselines: set[str] = set()
+    seen_candidate_ids: set[str] = set()
+
+    for position, raw_capture in enumerate(captures, start=1):
+        label = f"public comparison capture {position}"
+        if not isinstance(raw_capture, dict):
+            raise ValueError(f"{label} must be an object")
+        capture_id = raw_capture.get("captureId")
+        comparison_id = raw_capture.get("comparisonId")
+        object_name = raw_capture.get("object")
+        if not isinstance(capture_id, str) or not capture_id:
+            raise ValueError(f"{label}.captureId must be a non-empty string")
+        if capture_id in seen_capture_ids:
+            raise ValueError(f"duplicate public comparison captureId: {capture_id}")
+        if not isinstance(comparison_id, str) or not comparison_id:
+            raise ValueError(f"{label}.comparisonId must be a non-empty string")
+        if comparison_id in seen_comparison_ids:
+            raise ValueError(f"duplicate public comparison comparisonId: {comparison_id}")
+        if not isinstance(object_name, str) or not object_name.strip():
+            raise ValueError(f"{label}.object must be a non-empty string")
+        exposure = normalize_exposure(raw_capture.get("exposure"))
+        filter_name = str(raw_capture.get("filter", "")).strip().upper()
+        if filter_name not in {"LP", "IRCUT"}:
+            raise ValueError(f"{label}.filter is not supported")
+        key = match_key(object_name, exposure, filter_name)
+
+        baseline = raw_capture.get("baseline")
+        night_sky = raw_capture.get("nightSkyAI")
+        if not isinstance(baseline, dict) or not isinstance(night_sky, dict):
+            raise ValueError(f"{label} must contain baseline and nightSkyAI objects")
+        baseline_filename = baseline.get("filename")
+        if not isinstance(baseline_filename, str) or baseline_filename not in current_catalog:
+            raise ValueError(f"{label} baseline is not in the current gallery catalog")
+        if baseline_filename in seen_baselines:
+            raise ValueError(f"duplicate public comparison baseline: {baseline_filename}")
+        parsed = SITE_FILENAME.fullmatch(baseline_filename)
+        if parsed is None:
+            raise ValueError(f"{label} baseline filename is not recognized: {baseline_filename}")
+        baseline_frames = _positive_manifest_integer(
+            baseline.get("frames"), f"{label}.baseline.frames"
+        )
+        if baseline_frames < DEFAULT_MIN_FRAMES:
+            raise ValueError(
+                f"{label}.baseline.frames must be at least {DEFAULT_MIN_FRAMES}"
+            )
+        if baseline_frames != int(parsed.group("frames")):
+            raise ValueError(f"{label} baseline frame count does not match its filename")
+        baseline_key = match_key(
+            parsed.group("object"), parsed.group("exposure"), parsed.group("filter")
+        )
+        if baseline_key != key:
+            raise ValueError(f"{label} baseline capture identity does not match its manifest")
+        treatment = parsed.group("treatment").replace("_", " ")
+        declared_treatment = baseline.get("treatment")
+        if (
+            not isinstance(declared_treatment, str)
+            or declared_treatment.replace("_", " ").casefold() != treatment.casefold()
+        ):
+            raise ValueError(f"{label} baseline treatment does not match its filename")
+        baseline_path = _public_manifest_file(
+            image_root, baseline_filename, f"{label}.baseline.filename"
+        )
+        baseline_sha256, baseline_width, baseline_height = _verify_manifest_image(
+            baseline_path, baseline, f"{label}.baseline"
+        )
+        site = SiteImage(
+            path=baseline_path,
+            filename=baseline_filename,
+            frames=baseline_frames,
+            object_name=object_name,
+            treatment=treatment,
+            timestamp=parsed.group("timestamp"),
+            key=key,
+            sha256=baseline_sha256,
+            width=baseline_width,
+            height=baseline_height,
+        )
+
+        expected_night_filename = f"aligned-v1/{capture_id}.jpg"
+        if night_sky.get("filename") != expected_night_filename:
+            raise ValueError(
+                f"{label}.nightSkyAI.filename must be {expected_night_filename}"
+            )
+        night_path = _public_manifest_file(
+            comparison_root,
+            night_sky.get("filename"),
+            f"{label}.nightSkyAI.filename",
+        )
+        night_sha256, night_width, night_height = _verify_manifest_image(
+            night_path, night_sky, f"{label}.nightSkyAI"
+        )
+        if (night_width, night_height) != (baseline_width, baseline_height):
+            raise ValueError(
+                f"{label}.nightSkyAI dimensions must match the Gallery baseline: "
+                f"{night_width}x{night_height} versus "
+                f"{baseline_width}x{baseline_height}"
+            )
+        night_frames = _positive_manifest_integer(
+            night_sky.get("frames"), f"{label}.nightSkyAI.frames"
+        )
+        if night_frames < DEFAULT_MIN_FRAMES:
+            raise ValueError(
+                f"{label}.nightSkyAI.frames must be at least {DEFAULT_MIN_FRAMES}"
+            )
+        first_timestamp = str(night_sky.get("firstTimestamp", ""))
+        last_timestamp = str(night_sky.get("lastTimestamp", ""))
+        if parse_capture_timestamp(first_timestamp) > parse_capture_timestamp(last_timestamp):
+            raise ValueError(f"{label} NightSkyAI timestamps are out of order")
+        night_count = _positive_manifest_integer(
+            night_sky.get("nightCount"), f"{label}.nightSkyAI.nightCount"
+        )
+        known_nights = tuple(sorted({first_timestamp[:8], last_timestamp[:8]}))
+        if night_count < len(known_nights):
+            raise ValueError(f"{label}.nightSkyAI.nightCount contradicts its timestamps")
+        input_fingerprint = _manifest_sha256(
+            night_sky.get("inputFingerprint"),
+            f"{label}.nightSkyAI.inputFingerprint",
+        )
+
+        alignment = night_sky.get("alignment")
+        if not isinstance(alignment, dict):
+            raise ValueError(f"{label}.nightSkyAI.alignment must be an object")
+        if alignment.get("referencePolicy") != "gallery-edit-is-immutable":
+            raise ValueError(
+                f"{label}.nightSkyAI.alignment must use the immutable Gallery edit"
+            )
+        if alignment.get("mode") != "registered-to-gallery-edit":
+            raise ValueError(
+                f"{label}.nightSkyAI.alignment must be registered to the Gallery edit"
+            )
+        verification = alignment.get("verification")
+        if not isinstance(verification, dict) or verification.get("passed") is not True:
+            raise ValueError(
+                f"{label}.nightSkyAI.alignment verification must have passed"
+            )
+        source_keys = {"sourceFilename", "sourceSha256", "sourceWidth", "sourceHeight"}
+        present_source_keys = source_keys.intersection(alignment)
+        if present_source_keys and present_source_keys != source_keys:
+            raise ValueError(f"{label}.nightSkyAI.alignment source metadata is incomplete")
+        if present_source_keys:
+            source_path = _public_manifest_file(
+                comparison_root,
+                alignment["sourceFilename"],
+                f"{label}.nightSkyAI.alignment.sourceFilename",
+            )
+            _verify_manifest_image(
+                source_path,
+                alignment,
+                f"{label}.nightSkyAI.alignment source",
+                sha_key="sourceSha256",
+                width_key="sourceWidth",
+                height_key="sourceHeight",
+            )
+
+        candidate_identity = json.dumps(
+            {
+                "capture_id": capture_id,
+                "comparison_id": comparison_id,
+                "input_fingerprint": input_fingerprint,
+                "night_sky_sha256": night_sha256,
+            },
+            sort_keys=True,
+        )
+        candidate_id = hashlib.sha256(candidate_identity.encode("utf-8")).hexdigest()
+        if candidate_id in seen_candidate_ids:
+            raise ValueError(f"duplicate public comparison NightSkyAI candidate: {capture_id}")
+        candidate = LocalStack(
+            path=night_path,
+            manifest_path=manifest_path.resolve(),
+            frames=night_frames,
+            object_name=object_name,
+            exposure_seconds=exposure,
+            filter_name=filter_name,
+            capture_first_timestamp=first_timestamp,
+            capture_last_timestamp=last_timestamp,
+            capture_nights=known_nights,
+            finished_at=created_at,
+            input_fingerprint=input_fingerprint,
+            preview_settings={"preview_style": "aligned"},
+            key=key,
+            candidate_id=candidate_id,
+            sha256=night_sha256,
+            width=night_width,
+            height=night_height,
+        )
+        pair_identity = json.dumps(
+            {
+                "comparison_id": comparison_id,
+                "site_filename": baseline_filename,
+                "site_sha256": baseline_sha256,
+                "candidate_id": candidate_id,
+            },
+            sort_keys=True,
+        )
+        pair_id = hashlib.sha256(pair_identity.encode("utf-8")).hexdigest()
+        pairs.append(ComparisonPair(pair_id, object_name, site, (candidate,)))
+        seen_capture_ids.add(capture_id)
+        seen_comparison_ids.add(comparison_id)
+        seen_baselines.add(baseline_filename)
+        seen_candidate_ids.add(candidate_id)
+
+    return pairs
+
+
+def verify_public_comparison_pairs(pairs: list[ComparisonPair]) -> None:
+    for pair in pairs:
+        if len(pair.ours) != 1:
+            raise ValueError(f"public comparison for {pair.target} must have one NightSkyAI image")
+        for label, path, expected_sha256, expected_dimensions in (
+            (
+                "Gallery",
+                pair.site.path,
+                pair.site.sha256,
+                (pair.site.width, pair.site.height),
+            ),
+            (
+                "NightSkyAI",
+                pair.ours[0].path,
+                pair.ours[0].sha256,
+                (pair.ours[0].width, pair.ours[0].height),
+            ),
+        ):
+            try:
+                current_sha256 = sha256_file(path)
+                current_dimensions = image_dimensions(path)
+            except (OSError, ValueError) as exc:
+                raise ValueError(
+                    f"{label} image for {pair.target} is unavailable or invalid"
+                ) from exc
+            if current_sha256 != expected_sha256 or current_dimensions != expected_dimensions:
+                raise ValueError(
+                    f"{label} image for {pair.target} changed while the review desk was open"
+                )
+
+
 def load_choices(path: Path) -> dict[str, object]:
     if not path.is_file():
         return {
@@ -755,6 +1084,28 @@ def load_choices(path: Path) -> dict[str, object]:
         raise ValueError(f"could not read choices {path}: {exc}") from exc
     if not isinstance(payload, dict) or not isinstance(payload.get("choices"), dict):
         raise ValueError(f"invalid choices document: {path}")
+    return payload
+
+
+def load_public_review_choices(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        return {
+            "schema_version": PUBLIC_REVIEW_CHOICES_SCHEMA_VERSION,
+            "tool": PUBLIC_REVIEW_TOOL_NAME,
+            "updated_at": None,
+            "choices": {},
+        }
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read public review choices {path}: {exc}") from exc
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != PUBLIC_REVIEW_CHOICES_SCHEMA_VERSION
+        or payload.get("tool") != PUBLIC_REVIEW_TOOL_NAME
+        or not isinstance(payload.get("choices"), dict)
+    ):
+        raise ValueError(f"invalid public review choices document: {path}")
     return payload
 
 
@@ -951,6 +1302,48 @@ def record_choice(
     choice: str,
     candidate_id: str | None = None,
 ) -> dict[str, object]:
+    return _record_pair_choice(
+        choices_path,
+        load_choices(choices_path),
+        pairs_by_id,
+        pair_id,
+        choice,
+        candidate_id,
+        schema_version=CHOICES_SCHEMA_VERSION,
+        tool_name=TOOL_NAME,
+    )
+
+
+def record_public_review_choice(
+    choices_path: Path,
+    pairs_by_id: dict[str, ComparisonPair],
+    pair_id: str,
+    choice: str,
+    candidate_id: str | None = None,
+) -> dict[str, object]:
+    return _record_pair_choice(
+        choices_path,
+        load_public_review_choices(choices_path),
+        pairs_by_id,
+        pair_id,
+        choice,
+        candidate_id,
+        schema_version=PUBLIC_REVIEW_CHOICES_SCHEMA_VERSION,
+        tool_name=PUBLIC_REVIEW_TOOL_NAME,
+    )
+
+
+def _record_pair_choice(
+    choices_path: Path,
+    payload: dict[str, object],
+    pairs_by_id: dict[str, ComparisonPair],
+    pair_id: str,
+    choice: str,
+    candidate_id: str | None,
+    *,
+    schema_version: int,
+    tool_name: str,
+) -> dict[str, object]:
     if choice not in {"site", "ours", "skip"}:
         raise ValueError("choice must be site, ours, or skip")
     pair = pairs_by_id.get(pair_id)
@@ -962,7 +1355,6 @@ def record_choice(
         if selected is None:
             raise ValueError("choose one of the available local stack candidates")
 
-    payload = load_choices(choices_path)
     choices = payload["choices"]
     assert isinstance(choices, dict)
     record: dict[str, object] = {
@@ -983,8 +1375,8 @@ def record_choice(
             }
         )
     choices[pair_id] = record
-    payload["schema_version"] = CHOICES_SCHEMA_VERSION
-    payload["tool"] = TOOL_NAME
+    payload["schema_version"] = schema_version
+    payload["tool"] = tool_name
     payload["updated_at"] = utc_now()
     write_json(choices_path, payload)
     return record
@@ -1125,7 +1517,8 @@ HTML = r'''<!doctype html>
 <script>
 let data={pairs:[],summary:{}}, index=0, candidateSelections={};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function load(){data=await (await fetch('/api/pairs',{cache:'no-store'})).json();render()}
+function showLoadError(error){document.querySelector('#progress').textContent='Review unavailable';document.querySelector('#fill').style.width='0%';document.querySelector('#app').innerHTML=`<div class="empty"><h2>Could not load review</h2><p>${esc(error.message||'The comparison files could not be verified.')}</p></div>`}
+async function load(){try{const response=await fetch('/api/pairs',{cache:'no-store'});const payload=await response.json();if(!response.ok)throw new Error(payload.error||'Could not load comparisons');data=payload;render();return true}catch(error){showLoadError(error);return false}}
 function current(){return data.pairs[index]}
 function render(){
  const app=document.querySelector('#app'), total=data.pairs.length, decided=data.summary.decided_count||0;
@@ -1142,10 +1535,20 @@ function render(){
 }
 function move(delta){if(!data.pairs.length)return;index=(index+delta+data.pairs.length)%data.pairs.length;render()}
 function selectCandidate(candidateId){candidateSelections[current().pair_id]=candidateId;render()}
-async function choose(choice,candidate){const p=current();const chosen=document.querySelector('#candidate')?.value||candidate;const res=await fetch('/api/choice',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pair_id:p.pair_id,choice,candidate_id:chosen})});if(!res.ok){alert((await res.json()).error||'Could not save choice');return}await load();if(index<data.pairs.length-1)index++;render()}
+async function choose(choice,candidate){const p=current();const chosen=document.querySelector('#candidate')?.value||candidate;const res=await fetch('/api/choice',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pair_id:p.pair_id,choice,candidate_id:chosen})});if(!res.ok){alert((await res.json()).error||'Could not save choice');return}if(!await load())return;if(index<data.pairs.length-1)index++;render()}
 addEventListener('keydown',event=>{if(event.key==='ArrowLeft')move(-1);else if(event.key==='ArrowRight')move(1);else if(event.key==='1')choose('site');else if(event.key==='2'){const p=current();if(p)choose('ours',document.querySelector('#candidate')?.value||p.ours[0].candidate_id)}else if(event.key.toLowerCase()==='s')choose('skip')});
 load();
 </script></body></html>'''
+
+PUBLIC_REVIEW_HTML = (
+    HTML.replace("<title>Seestar Stack Review</title>", "<title>Public Comparison Review</title>")
+    .replace("Current gallery", "Gallery edit")
+    .replace("Our Siril stack", "NightSkyAI")
+    .replace("Locally stacked version", "Aligned NightSkyAI version")
+    .replace("1 site · 2 ours", "1 gallery · 2 NightSkyAI")
+    .replace("1 · Keep gallery", "1 · Keep Gallery")
+    .replace("2 · Use our stack", "2 · Use NightSkyAI")
+)
 
 
 CULL_HTML = r'''<!doctype html>
@@ -1237,6 +1640,50 @@ class ReviewApplication:
         if path is None:
             raise FileNotFoundError("media not found")
         return path, path.read_bytes()
+
+
+class PublicComparisonReviewApplication(ReviewApplication):
+    index_html = PUBLIC_REVIEW_HTML
+
+    def __init__(self, pairs: list[ComparisonPair], choices_path: Path) -> None:
+        super().__init__(pairs, [], [], choices_path)
+        self.media_sha256 = {
+            f"site-{pair.pair_id}": pair.site.sha256 for pair in pairs
+        }
+        self.media_sha256.update(
+            {
+                f"ours-{candidate.candidate_id}": candidate.sha256
+                for pair in pairs
+                for candidate in pair.ours
+            }
+        )
+
+    def payload(self) -> dict[str, object]:
+        with self.lock:
+            verify_public_comparison_pairs(self.pairs)
+            choices = load_public_review_choices(self.choices_path)
+        return api_payload(self.pairs, [], [], choices)
+
+    def choose(self, request: dict[str, object]) -> dict[str, object]:
+        with self.lock:
+            verify_public_comparison_pairs(self.pairs)
+            return record_public_review_choice(
+                self.choices_path,
+                self.pairs_by_id,
+                str(request.get("pair_id", "")),
+                str(request.get("choice", "")),
+                str(request["candidate_id"]) if request.get("candidate_id") else None,
+            )
+
+    def read_media(self, media_id: str) -> tuple[Path, bytes]:
+        path = self.media.get(media_id)
+        expected_sha256 = self.media_sha256.get(media_id)
+        if path is None or expected_sha256 is None:
+            raise FileNotFoundError("media not found")
+        body = path.read_bytes()
+        if hashlib.sha256(body).hexdigest() != expected_sha256:
+            raise ValueError("public comparison image changed; refresh the review desk")
+        return path, body
 
 
 class GalleryCullApplication:
@@ -1385,6 +1832,49 @@ def command_serve(args: argparse.Namespace) -> int:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nReview server stopped.")
+    finally:
+        server.server_close()
+    return 0
+
+
+def command_review_public(args: argparse.Namespace) -> int:
+    gallery = args.gallery.expanduser().resolve()
+    choices = args.choices.expanduser().resolve()
+    work_path = gallery / "work"
+    work_root = work_path.resolve()
+    public_root = (gallery / "public").resolve()
+    app_root = (gallery / "app").resolve()
+    if (
+        work_path.is_symlink()
+        or not _is_relative_to(work_root, gallery)
+        or choices.suffix.casefold() != ".json"
+        or not _is_relative_to(choices, work_root)
+        or _is_relative_to(choices, public_root)
+        or _is_relative_to(choices, app_root)
+    ):
+        print(
+            "Error: public review choices must be a JSON file under the gallery work/ folder",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        pairs = load_public_comparison_pairs(gallery)
+        load_public_review_choices(choices)
+    except (OSError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+    print(f"Public comparison review set: {len(pairs)} Gallery versus NightSkyAI decisions.")
+    application = PublicComparisonReviewApplication(pairs, choices)
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(application))
+    url = f"http://127.0.0.1:{server.server_port}/"
+    print(f"Open the public comparison review at {url}")
+    print("Press Ctrl-C to stop it.")
+    if args.open:
+        webbrowser.open(url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nPublic comparison review server stopped.")
     finally:
         server.server_close()
     return 0
@@ -1812,6 +2302,27 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     serve.add_argument("--port", type=int, default=8765, help="Loopback port; use 0 to choose a free port.")
     serve.add_argument("--open", action="store_true", help="Open the review page in the default browser.")
     serve.set_defaults(func=command_serve)
+
+    public_review = subparsers.add_parser(
+        "review-public",
+        help="Review every published Gallery versus aligned NightSkyAI pair.",
+    )
+    public_review.add_argument(
+        "--gallery", required=True, type=Path, help="Deep Space Field Notes site repository."
+    )
+    public_review.add_argument(
+        "--choices",
+        required=True,
+        type=Path,
+        help="Separate JSON choice file under the gallery work/ folder.",
+    )
+    public_review.add_argument(
+        "--port", type=int, default=8765, help="Loopback port; use 0 to choose a free port."
+    )
+    public_review.add_argument(
+        "--open", action="store_true", help="Open the review page in the default browser."
+    )
+    public_review.set_defaults(func=command_review_public)
 
     cull = subparsers.add_parser(
         "cull", help="Launch the local chooser for configured duplicate gallery captures."

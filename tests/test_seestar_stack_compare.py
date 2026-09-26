@@ -44,6 +44,76 @@ def write_cull_groups(gallery: Path, groups: list[dict[str, object]]) -> Path:
     return path
 
 
+def write_public_comparison_manifest(gallery: Path) -> Path:
+    comparison_root = gallery / "public" / "comparisons"
+    aligned_root = comparison_root / "aligned-v1"
+    aligned_root.mkdir(parents=True)
+    captures: list[dict[str, object]] = []
+    for position, filename in enumerate(compare.site_catalog_filenames(gallery), start=1):
+        parsed = compare.SITE_FILENAME.fullmatch(filename)
+        assert parsed is not None
+        baseline_path = gallery / "public" / "images" / filename
+        baseline_width, baseline_height = compare.image_dimensions(baseline_path)
+        capture_id = f"capture-{position:024x}"
+        night_path = aligned_root / f"{capture_id}.jpg"
+        night_frames = max(1, int(parsed.group("frames")) - 7)
+        night_path.write_bytes(
+            jpeg_bytes(
+                width=baseline_width,
+                height=baseline_height,
+                payload=f"aligned:{filename}".encode(),
+            )
+        )
+        night_width, night_height = compare.image_dimensions(night_path)
+        captures.append(
+            {
+                "captureId": capture_id,
+                "comparisonId": f"comparison-{position:024x}",
+                "object": parsed.group("object"),
+                "exposure": compare.normalize_exposure(parsed.group("exposure")),
+                "filter": parsed.group("filter").upper(),
+                "baseline": {
+                    "filename": filename,
+                    "frames": int(parsed.group("frames")),
+                    "treatment": parsed.group("treatment").replace("_", " "),
+                    "sha256": compare.sha256_file(baseline_path),
+                    "width": baseline_width,
+                    "height": baseline_height,
+                },
+                "nightSkyAI": {
+                    "filename": f"aligned-v1/{capture_id}.jpg",
+                    "frames": night_frames,
+                    "inputFingerprint": f"{position:064x}",
+                    "firstTimestamp": parsed.group("timestamp"),
+                    "lastTimestamp": parsed.group("timestamp"),
+                    "nightCount": 1,
+                    "sha256": compare.sha256_file(night_path),
+                    "width": night_width,
+                    "height": night_height,
+                    "alignment": {
+                        "mode": "registered-to-gallery-edit",
+                        "referencePolicy": "gallery-edit-is-immutable",
+                        "verification": {"passed": True},
+                    },
+                },
+            }
+        )
+    manifest = comparison_root / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "schemaVersion": 2,
+                "tool": compare.TOOL_NAME,
+                "createdAt": "2026-09-25T18:27:58Z",
+                "captureCount": len(captures),
+                "captures": captures,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return manifest
+
+
 def make_stack(
     root: Path,
     *,
@@ -634,7 +704,366 @@ class GalleryCullTests(unittest.TestCase):
         self.assertEqual(result, 2)
 
 
+class PublicComparisonReviewTests(unittest.TestCase):
+    def test_manifest_builds_exactly_one_verified_pair_per_capture(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            filenames = [
+                "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg",
+                "Stacked_144_SH2-142_10.0s_LP_20260926-220000_hand_processed.png",
+            ]
+            gallery = make_gallery(root, filenames)
+            write_public_comparison_manifest(gallery)
+
+            pairs = compare.load_public_comparison_pairs(gallery)
+
+            self.assertEqual(len(pairs), 2)
+            self.assertEqual([pair.target for pair in pairs], ["M 31", "SH2-142"])
+            self.assertEqual([pair.site.filename for pair in pairs], filenames)
+            self.assertTrue(all(len(pair.ours) == 1 for pair in pairs))
+            self.assertEqual([pair.ours[0].frames for pair in pairs], [93, 137])
+            self.assertEqual(len({pair.pair_id for pair in pairs}), 2)
+            self.assertEqual(len({pair.ours[0].candidate_id for pair in pairs}), 2)
+            payload = compare.api_payload(
+                pairs,
+                [],
+                [],
+                compare.load_public_review_choices(gallery / "work" / "choices.json"),
+            )
+            self.assertEqual(payload["summary"]["pair_count"], 2)
+            self.assertEqual(payload["summary"]["unpaired_gallery_count"], 0)
+            self.assertEqual(payload["summary"]["unpaired_local_count"], 0)
+
+    def test_manifest_rejects_each_declared_integrity_mismatch(self):
+        cases = [
+            (
+                "unaligned schema",
+                lambda payload: payload.__setitem__("schemaVersion", 1),
+                "tool or schema",
+            ),
+            (
+                "capture count",
+                lambda payload: payload.__setitem__("captureCount", 2),
+                "captureCount",
+            ),
+            (
+                "baseline checksum",
+                lambda payload: payload["captures"][0]["baseline"].__setitem__(
+                    "sha256", "0" * 64
+                ),
+                "baseline checksum",
+            ),
+            (
+                "baseline dimensions",
+                lambda payload: payload["captures"][0]["baseline"].__setitem__(
+                    "width", 1079
+                ),
+                "baseline dimensions",
+            ),
+            (
+                "baseline frames",
+                lambda payload: payload["captures"][0]["baseline"].__setitem__(
+                    "frames", 99
+                ),
+                "baseline frame count",
+            ),
+            (
+                "baseline below frame floor",
+                lambda payload: payload["captures"][0]["baseline"].__setitem__(
+                    "frames", 49
+                ),
+                "baseline.frames must be at least 50",
+            ),
+            (
+                "NightSkyAI checksum",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "sha256", "0" * 64
+                ),
+                "nightSkyAI checksum",
+            ),
+            (
+                "NightSkyAI wrong directory",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "filename",
+                    f"images/{payload['captures'][0]['captureId']}.jpg",
+                ),
+                "nightSkyAI.filename must be aligned-v1",
+            ),
+            (
+                "NightSkyAI wrong capture filename",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "filename", "aligned-v1/capture-not-this-one.jpg"
+                ),
+                "nightSkyAI.filename must be aligned-v1",
+            ),
+            (
+                "NightSkyAI dimensions",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "height", 1919
+                ),
+                "nightSkyAI dimensions",
+            ),
+            (
+                "NightSkyAI frames",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "frames", 0
+                ),
+                "nightSkyAI.frames",
+            ),
+            (
+                "NightSkyAI below frame floor",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "frames", 49
+                ),
+                "nightSkyAI.frames must be at least 50",
+            ),
+            (
+                "missing alignment",
+                lambda payload: payload["captures"][0]["nightSkyAI"].__setitem__(
+                    "alignment", None
+                ),
+                "alignment must be an object",
+            ),
+            (
+                "mutable alignment reference",
+                lambda payload: payload["captures"][0]["nightSkyAI"][
+                    "alignment"
+                ].__setitem__("referencePolicy", "candidate-is-reference"),
+                "immutable Gallery edit",
+            ),
+            (
+                "wrong alignment mode",
+                lambda payload: payload["captures"][0]["nightSkyAI"][
+                    "alignment"
+                ].__setitem__("mode", "unaligned"),
+                "registered to the Gallery edit",
+            ),
+            (
+                "failed alignment verification",
+                lambda payload: payload["captures"][0]["nightSkyAI"][
+                    "alignment"
+                ]["verification"].__setitem__("passed", False),
+                "verification must have passed",
+            ),
+        ]
+        for case_name, mutate, expected_error in cases:
+            with self.subTest(case_name=case_name):
+                with tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary)
+                    gallery = make_gallery(
+                        root,
+                        ["Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"],
+                    )
+                    manifest = write_public_comparison_manifest(gallery)
+                    payload = json.loads(manifest.read_text(encoding="utf-8"))
+                    mutate(payload)
+                    manifest.write_text(json.dumps(payload), encoding="utf-8")
+
+                    with self.assertRaisesRegex(ValueError, expected_error):
+                        compare.load_public_comparison_pairs(gallery)
+
+    def test_manifest_rejects_self_consistent_cropped_nightskyai_canvas(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                ["Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"],
+            )
+            manifest = write_public_comparison_manifest(gallery)
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+            night_sky = payload["captures"][0]["nightSkyAI"]
+            night_path = gallery / "public" / "comparisons" / night_sky["filename"]
+            night_path.write_bytes(jpeg_bytes(width=540, height=960, payload=b"cropped"))
+            night_sky["sha256"] = compare.sha256_file(night_path)
+            night_sky["width"] = 540
+            night_sky["height"] = 960
+            manifest.write_text(json.dumps(payload), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                ValueError, "dimensions must match the Gallery baseline"
+            ):
+                compare.load_public_comparison_pairs(gallery)
+
+    def test_manifest_verifies_declared_alignment_source_and_rejects_escape(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                ["Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"],
+            )
+            manifest = write_public_comparison_manifest(gallery)
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+            source = gallery / "public" / "comparisons" / "images" / "source.jpg"
+            source.parent.mkdir()
+            source.write_bytes(jpeg_bytes(payload=b"unaligned source"))
+            width, height = compare.image_dimensions(source)
+            payload["captures"][0]["nightSkyAI"]["alignment"].update(
+                {
+                    "sourceFilename": "images/source.jpg",
+                    "sourceSha256": compare.sha256_file(source),
+                    "sourceWidth": width,
+                    "sourceHeight": height,
+                }
+            )
+            manifest.write_text(json.dumps(payload), encoding="utf-8")
+
+            self.assertEqual(len(compare.load_public_comparison_pairs(gallery)), 1)
+            source.write_bytes(jpeg_bytes(payload=b"changed source"))
+            with self.assertRaisesRegex(ValueError, "alignment source checksum"):
+                compare.load_public_comparison_pairs(gallery)
+
+            payload["captures"][0]["nightSkyAI"]["alignment"][
+                "sourceFilename"
+            ] = "../../images/escape.jpg"
+            manifest.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "must stay inside"):
+                compare.load_public_comparison_pairs(gallery)
+
+    def test_public_review_choices_are_separate_and_never_mutate_site_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                [
+                    "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg",
+                    "Stacked_100_M 42_10.0s_LP_20260925-220000_cleaned.jpg",
+                ],
+            )
+            write_public_comparison_manifest(gallery)
+            pairs = compare.load_public_comparison_pairs(gallery)
+            before = {
+                path.relative_to(gallery): path.read_bytes()
+                for folder in (gallery / "app", gallery / "public")
+                for path in folder.rglob("*")
+                if path.is_file()
+            }
+            choices = gallery / "work" / "public_review_choices.json"
+            application = compare.PublicComparisonReviewApplication(pairs, choices)
+
+            application.choose({"pair_id": pairs[0].pair_id, "choice": "site"})
+            application.choose(
+                {
+                    "pair_id": pairs[1].pair_id,
+                    "choice": "ours",
+                    "candidate_id": pairs[1].ours[0].candidate_id,
+                }
+            )
+
+            after = {
+                path.relative_to(gallery): path.read_bytes()
+                for folder in (gallery / "app", gallery / "public")
+                for path in folder.rglob("*")
+                if path.is_file()
+            }
+            saved = json.loads(choices.read_text(encoding="utf-8"))
+            self.assertEqual(after, before)
+            self.assertEqual(saved["tool"], compare.PUBLIC_REVIEW_TOOL_NAME)
+            self.assertEqual(application.payload()["summary"]["decided_count"], 2)
+            self.assertIn("Gallery edit", application.index_html)
+            self.assertIn("Use NightSkyAI", application.index_html)
+            media_id = f"ours-{pairs[0].ours[0].candidate_id}"
+            self.assertEqual(
+                application.read_media(media_id)[1], pairs[0].ours[0].path.read_bytes()
+            )
+
+            pairs[0].ours[0].path.write_bytes(jpeg_bytes(payload=b"changed live"))
+            with self.assertRaisesRegex(ValueError, "changed while the review desk was open"):
+                application.payload()
+            with self.assertRaisesRegex(ValueError, "changed; refresh"):
+                application.read_media(media_id)
+
+            ordinary_choices = gallery / "work" / "ordinary_choices.json"
+            compare.write_json(
+                ordinary_choices,
+                {"schema_version": 1, "tool": compare.TOOL_NAME, "choices": {}},
+            )
+            with self.assertRaisesRegex(ValueError, "invalid public review choices"):
+                compare.load_public_review_choices(ordinary_choices)
+
+    def test_review_public_cli_uses_work_choices_and_no_raw_stack_root(self):
+        args = compare.parse_args(
+            [
+                "review-public",
+                "--gallery",
+                "/tmp/gallery",
+                "--choices",
+                "/tmp/gallery/work/public_review_choices.json",
+            ]
+        )
+        self.assertEqual(args.command, "review-public")
+        self.assertEqual(args.port, 8765)
+        self.assertFalse(hasattr(args, "ours"))
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            result = compare.main(
+                [
+                    "review-public",
+                    "--gallery",
+                    "/tmp/gallery",
+                    "--choices",
+                    "/tmp/outside-work.json",
+                ]
+            )
+        self.assertEqual(result, 2)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                ["Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"],
+            )
+            external_work = root / "external-work"
+            external_work.mkdir()
+            (gallery / "work").symlink_to(external_work, target_is_directory=True)
+            with contextlib.redirect_stderr(io.StringIO()):
+                result = compare.main(
+                    [
+                        "review-public",
+                        "--gallery",
+                        str(gallery),
+                        "--choices",
+                        str(gallery / "work" / "public_review_choices.json"),
+                    ]
+                )
+            self.assertEqual(result, 2)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                ["Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"],
+            )
+            write_public_comparison_manifest(gallery)
+            choices = gallery / "work" / "public_review_choices.json"
+            server = mock.Mock()
+            server.server_port = 43123
+            with (
+                mock.patch.object(compare, "ThreadingHTTPServer", return_value=server),
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                result = compare.main(
+                    [
+                        "review-public",
+                        "--gallery",
+                        str(gallery),
+                        "--choices",
+                        str(choices),
+                    ]
+                )
+            self.assertEqual(result, 0)
+            server.serve_forever.assert_called_once_with()
+            server.server_close.assert_called_once_with()
+            self.assertFalse(choices.exists())
+
+
 class ChoiceAndExportTests(unittest.TestCase):
+    def test_review_html_surfaces_api_load_failures(self):
+        self.assertIn("if(!response.ok)throw new Error", compare.HTML)
+        self.assertIn("showLoadError(error)", compare.HTML)
+        self.assertIn("Review unavailable", compare.HTML)
+        self.assertIn("if(!await load())return", compare.HTML)
+        self.assertIn("Could not load review", compare.PUBLIC_REVIEW_HTML)
+
     def test_picker_only_marks_the_exact_saved_candidate_as_selected(self):
         self.assertIn(
             "chosen==='ours'&&p.choice?.ours_candidate_id===ours.candidate_id",

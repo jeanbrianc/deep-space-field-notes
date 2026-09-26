@@ -1,6 +1,6 @@
 ---
 name: seestar-fits-stack-review
-description: Stack original Seestar FIT/FITS light frames directly from Brian's connected YOTUO, Seestar, or removable astronomy drive without duplicating the raw archive; optionally make an offline FITS copy when explicitly requested; and launch the local review desk for Seestar versus NightSkyAI choices or one-winner gallery curation. Use when Brian says the YOTUO or Seestar drive is connected, asks to stack all targets himself, compare Seestar and Siril results, choose the cooler image, choose among repeated gallery targets, sync raw FITS for offline use, or prepare winners for the gallery.
+description: Stack original Seestar FIT/FITS light frames directly from Brian's connected YOTUO, Seestar, or removable astronomy drive without duplicating the raw archive; optionally make an offline FITS copy when explicitly requested; and launch the correct local review desk for raw-stack comparisons, all tracked Gallery-versus-NightSkyAI display decisions, or duplicate-target curation. Use when Brian says the YOTUO or Seestar drive is connected, asks to stack all targets himself, compare Seestar and Siril results, personally choose which of the 28 aligned versions the public gallery should show, choose among repeated gallery targets, sync raw FITS for offline use, or prepare winners for the gallery.
 ---
 
 # Stack and Review Seestar FITS
@@ -31,9 +31,14 @@ Choose `<work-root>` without splitting a prior review:
   workspace.
   Preserve those paths so stack resumes and review choices remain continuous.
 
-Put local stacks, decisions, winner snapshots, and an optional offline FITS
-archive under `<work-root>` as `local_siril_stacks`, `stack_choices.json`,
-`selected_site_images`, and `offline_fits` respectively.
+Put local stacks, raw-stack decisions, duplicate-target decisions, winner
+snapshots, and an optional offline FITS archive under `<work-root>` as
+`local_siril_stacks`, `stack_choices.json`, `gallery_cull_choices.json`,
+`selected_site_images`, and `offline_fits` respectively. Keep final public
+treatment decisions at `<gallery-root>/work/public_display_choices.json` so a
+fresh clone can review the tracked bundle without the old stacking workspace.
+These decision files serve different queues and must never be substituted for
+one another.
 
 ## 1. Resolve and inspect the removable source
 
@@ -177,7 +182,7 @@ python3 <gallery-root>/seestar_siril_stack.py stack \
 A real fixture stack still requires the temporary capacity reported by the dry
 run.
 
-## 4. Launch the visual choice mode
+## 4. Review newly built raw-stack comparisons
 
 Start the loopback-only reviewer:
 
@@ -207,7 +212,36 @@ Use filenames declared in `<gallery-root>/app/page.tsx` as the current
 gallery source of truth. Do not reintroduce a removed image just because a stale
 copy remains elsewhere.
 
-## 5. Choose one public image for repeated targets
+## 5. Review every tracked public treatment
+
+When Brian asks to personally choose which Gallery edit or NightSkyAI version
+the public site should show, use the tracked public comparison bundle rather
+than `serve` or `cull`. This queue is independent of the removed raw FITS
+workspace and currently contains all 28 aligned comparisons:
+
+```bash
+python3 <gallery-root>/seestar_stack_compare.py review-public \
+  --gallery <gallery-root> \
+  --choices <gallery-root>/work/public_display_choices.json \
+  --port 8765
+```
+
+Open `http://127.0.0.1:8765/` for Brian. Require one pair for every capture in
+`<gallery-root>/public/comparisons/manifest.json`, verify the declared paths,
+dimensions, frame counts, and SHA-256 values before serving them, and preserve
+the Gallery edit as the alignment reference. The desk must show the Gallery
+edit beside its aligned NightSkyAI treatment and let Brian select either one or
+**Decide later**. Resume only from the dedicated
+`<gallery-root>/work/public_display_choices.json`; do not mix these 28
+treatment decisions with raw-stack or duplicate-target choices.
+
+This mode is review-only. It must not edit `public/`, `app/`, comparison
+metadata, or the deployed site. Finishing all 28 decisions does not authorize
+applying them, removing the public comparison controls, committing generated
+image changes, or publishing. Those are later, explicit steps after Brian says
+the review is complete.
+
+## 6. Choose one public image for repeated targets
 
 Keep target curation separate from the exact-session stack comparison above.
 The stack reviewer must still never alias C 34 with NGC 6960, C 27 with
@@ -236,7 +270,7 @@ group has a winner, use the exact saved filenames and hashes to prepare a
 separate, reviewable Gallery diff. Do not publish merely because the local
 choice file is complete.
 
-## 6. Export reviewed stack winners
+## 7. Export reviewed stack winners
 
 After all available pairs are decided, create a new selection snapshot:
 
@@ -256,7 +290,9 @@ a separate explicit action after Brian approves the selected set.
 
 Report the removable source, discovered FITS count/bytes, eligible/completed/
 failed stack groups, matched/undecided comparisons, review URL, decisions file,
-and winner snapshot when exported. When culling repeated targets, also report
-the culling choice file and decided/undecided groups. Call out low-frame
+and winner snapshot when exported. For the public treatment queue, report its
+manifest count and decided/undecided totals from `public_display_choices.json`.
+When culling repeated targets, also report the distinct culling choice file and
+decided/undecided groups. Call out low-frame
 targets, mosaics, conflicts, and unpaired images. If an optional offline archive
 exists, report its size without deleting it unless Brian explicitly asks.

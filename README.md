@@ -42,7 +42,10 @@ The collection follows a deliberate curation path:
    then retry with full-field framing before it can enter the comparison set.
 8. Match the NightSkyAI star field to the Gallery edit's orientation and crop,
    without changing the Gallery reference or overwriting the full-field source.
-9. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
+9. Review all 28 tracked, aligned Gallery edit/NightSkyAI pairs locally and
+   record which treatment should ultimately be displayed; applying those
+   choices and publishing the site remain separate, explicit steps.
+10. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
 
 The result is not intended to compete with professional observatory imagery. It is a living record of what a small smart telescope can reveal from a backyard in Northern Michigan—and a more inviting way to share that record with other people.
 
@@ -53,6 +56,13 @@ processing and validation without Codex. Public Sites hosting remains a
 separate release step. Both paths keep the telescope archive read-only,
 write private working data under ignored `work/`, and separate local
 preparation from public release.
+
+The local review desk has three deliberately different queues. `serve`
+compares new local Siril stacks while their raw-FITS workspace exists;
+`review-public` presents all 28 aligned pairs already tracked in the public
+comparison manifest and records final display choices locally; and `cull`
+contains only the three configured duplicate-target groups. None of those
+review screens applies a display choice or publishes the site on its own.
 
 ## The open processing experiment
 
@@ -76,6 +86,12 @@ verification result. Newly aligned comparisons default to the Gallery edit
 until they are reviewed again. Neither version is hidden. Seeing both in the same frame makes
 differences in field coverage, color, contrast, noise, and detail much easier
 to judge than a side-by-side desktop layout.
+
+The owner can separately open all 28 tracked pairs in the local
+`review-public` desk and choose which treatment should eventually represent
+each observation. That desk writes only an ignored local decision file; a
+reviewed change must apply the completed choices, and public deployment must
+still be requested separately.
 
 After comparing, a visitor can cast one anonymous browser vote per observation.
 The browser receives a random private identifier; only its one-way hash is
@@ -140,6 +156,9 @@ aligned manifest as if its derivative were fresh source material.
 - `gallery_cull_groups.json` defines repeated targets for the local one-winner
   review queue; `review_candidates/` holds local-review-only comparison
   candidates that are never served by the public site.
+- `seestar_stack_compare.py` provides separate `serve`, `review-public`, and
+  `cull` queues for raw-stack review, the 28 tracked display decisions, and the
+  three duplicate-target decisions respectively.
 - `scripts/audit_comparison_alignment.py` performs the deterministic,
   fail-closed star-field audit and produces verified aligned derivatives.
 - `db/schema.ts` and `drizzle/` define the small vote database.

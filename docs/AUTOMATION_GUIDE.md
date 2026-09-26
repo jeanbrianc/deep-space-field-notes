@@ -23,6 +23,7 @@ the Gallery edit as the immutable alignment reference for public comparisons.
 | --- | --- | --- |
 | Make the best existing Seestar JPEGs available offline | Collect, then clean | A small offline set and a cleanup manifest |
 | Rebuild targets from the original light frames | Stack, then review | Reproducible Siril stacks and human choices |
+| Choose which treatment each tracked comparison should display | Review all tracked public pairs | 28 local display decisions; no site changes |
 | Choose one public photo when a target was captured twice | Cull repeated targets | One personal winner per configured object |
 | Prepare a fair Seestar/NightSkyAI comparison | Export a release candidate, then align | Both treatments show the same sky orientation and framing |
 | Update the public experience | Promote the reviewed candidate, validate, then publish | A tested, versioned site release |
@@ -30,6 +31,28 @@ the Gallery edit as the immutable alignment reference for public comparisons.
 The fast JPEG route and the raw-FITS route are complementary. The first finds
 the best image the telescope already created. The second builds NightSkyAI's
 own stack from the source frames so it can be judged against the Gallery edit.
+
+### Three local review queues
+
+The same review-desk design supports three different decisions. Choose the
+queue deliberately:
+
+- `serve` compares the Gallery with newly built Siril/NightSkyAI stacks while
+  `work/local_siril_stacks` still exists. Its size follows the eligible local
+  stack manifests; it is not the fixed 28-pair public queue. It records the
+  choices used for a later stack export in `work/stack_choices.json`.
+- `review-public` reads the tracked, already-aligned
+  `public/comparisons/manifest.json` and presents all 28 Gallery edit versus
+  NightSkyAI pairs. It records the intended final display treatment in
+  `work/public_display_choices.json` without changing `public/`, `app/`, or the
+  deployed site.
+- `cull` contains only the three groups in `gallery_cull_groups.json`:
+  Andromeda, Western Veil, and Crescent Nebula. It answers which duplicate
+  capture should remain, not which processing treatment should be displayed.
+
+Finishing any queue completes only its local decision file. Applying those
+decisions is a separate reviewed change, and publishing that change is a
+separate explicit release action.
 
 ## Route A: run it with Codex skills
 
@@ -102,7 +125,7 @@ Ask for pruning only when you deliberately want to refresh the derivative set:
 Pruning is limited to outputs named by the prior cleanup manifest, but it is
 still a deliberate removal step and is never part of the normal recipe.
 
-### Stage 3 — stack the original FITS and review the result
+### Stage 3 — stack the original FITS and review the result with `serve`
 
 Use a request such as:
 
@@ -142,10 +165,10 @@ frames belong to the same capture session. The Andromeda comparison uses the
 distinct original 61-frame mosaic rather than the duplicate processed file that
 was accidentally substituted during curation.
 
-The culling desk records one winner per group in
-`work/gallery_cull_choices.json`. It never edits `app/page.tsx`, removes an
-image, or publishes the site. Apply the completed choices later as a separate
-reviewed Gallery change.
+The culling desk contains exactly three decisions and records one winner per
+group in `work/gallery_cull_choices.json`. It never edits `app/page.tsx`,
+removes an image, or publishes the site. Apply the completed choices later as
+a separate reviewed Gallery change.
 
 ### Stage 5 — audit orientation before a public comparison
 
@@ -173,7 +196,21 @@ aligned. For that bundle, ask the skill to **verify** it. Do not run `audit` on
 an aligned manifest; the tool rejects that because the derivative must not be
 mistaken for an original source.
 
-### Stage 6 — validate and publish
+### Stage 6 — choose the final treatment for all 28 tracked pairs
+
+Use a request such as:
+
+> Open all 28 tracked, aligned Gallery edit versus NightSkyAI pairs in the
+> final display review. Save my choices locally, and do not apply them or
+> publish the site.
+
+This uses `review-public`, not the three-item `cull` queue and not the
+workspace-dependent `serve` queue. It reads the checked-in public comparison
+manifest and saves `work/public_display_choices.json`. Reaching 28 of 28
+finishes the decision record only. Applying the winners requires a separate
+reviewed Gallery change, and publishing requires another explicit request.
+
+### Stage 7 — validate and publish
 
 Use a final request such as:
 
@@ -369,7 +406,7 @@ The importer writes `work/offline_fits/.seestar_fits_import_manifest.json` and
 retains already archived files across later scans. It does not make this copy
 unless you run the second command.
 
-### 5. Review Gallery and NightSkyAI side by side
+### 5. Review newly built Gallery and NightSkyAI stacks with `serve`
 
 Launch the local-only review desk:
 
@@ -397,6 +434,10 @@ The exporter creates a new UTC-named directory containing the chosen files and
 `selection_manifest.json`. It refuses to overwrite an existing snapshot. Do
 not use `--allow-incomplete` in the normal workflow: a **Decide later** choice
 should remain a visible release blocker.
+
+This queue is built from the available manifests under
+`work/local_siril_stacks`. It is for reviewing fresh raw-FITS processing while
+that workspace exists; it is not the fixed 28-decision public display review.
 
 ### 6. Choose one Gallery image for repeated targets
 
@@ -500,7 +541,33 @@ run only:
 python scripts/audit_comparison_alignment.py verify --gallery .
 ```
 
-### 8. Promote and validate, then hand off for hosting
+### 8. Review all 28 tracked display treatments with `review-public`
+
+Launch the same local desk against the checked-in, aligned public comparison
+manifest:
+
+```bash
+python seestar_stack_compare.py review-public \
+  --gallery . \
+  --choices "$WORK_ROOT/public_display_choices.json" \
+  --port 8765 \
+  --open
+```
+
+This is the 28-decision queue: each choice says whether the Gallery edit or its
+aligned NightSkyAI treatment should ultimately be displayed for that tracked
+observation. Choices are saved atomically in
+`work/public_display_choices.json`. The command verifies and reads the tracked
+pair assets, but it never mutates `public/`, edits `app/`, applies a winner, or
+publishes the site.
+
+Reaching **28 of 28** completes only the local choice file. Inspect that file,
+apply the completed winners in a separate reviewed Git change, validate that
+change, and publish it only through a separate explicit Sites release. For a
+future comparison candidate, first promote and verify that candidate
+deliberately, then rerun this queue against the newly tracked manifest.
+
+### 9. Promote and validate, then hand off for hosting
 
 Promotion is intentionally not an overwrite one-liner. Compare the complete
 candidate with the tracked bundle, promote it in a dedicated Git change while
@@ -634,7 +701,9 @@ pixels into publication.
 | Clean | `work/cleaned_photos/cleanup_manifest.json` | Output provenance and processing method |
 | Optional FITS copy | `work/offline_fits/.seestar_fits_import_manifest.json` | Incremental raw archive inventory |
 | Stack | `work/local_siril_stacks/**/manifest.json` | Inputs, settings, outputs, hashes, and run status |
-| Review | `work/stack_choices.json` | Human choice for each exact pair |
+| Raw-stack review (`serve`) | `work/stack_choices.json` | Human choice for each eligible local Siril pair |
+| Public display review (`review-public`) | `work/public_display_choices.json` | Final treatment choice for each of the 28 tracked aligned pairs |
+| Duplicate cull (`cull`) | `work/gallery_cull_choices.json` | One personal winner for each of the three configured repeated targets |
 | Winner export | `work/selected_site_images/<UTC>/selection_manifest.json` | Immutable chosen-image snapshot |
 | Candidate | `work/release-candidate-*/public/comparisons/` | Isolated public comparison proposal |
 | Published source | `public/comparisons/` | Reviewed originals, derivatives, and audit evidence |
