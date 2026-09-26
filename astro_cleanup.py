@@ -243,17 +243,23 @@ def image_files(source: Path) -> list[Path]:
     )
 
 
-def stack_info(path: Path) -> tuple[int, str] | None:
+def stack_info(path: Path) -> tuple[int, str, bool] | None:
     match = STACKED_NAME.match(path.name)
     if not match:
         return None
-    return int(match.group(1)), match.group(2).removeprefix("mosaic_")
+    raw_object_name = match.group(2)
+    is_mosaic = raw_object_name.casefold().startswith("mosaic_")
+    object_name = raw_object_name[len("mosaic_"):] if is_mosaic else raw_object_name
+    return int(match.group(1)), object_name, is_mosaic
 
 
-def find_finished_image(processed_root: Path | None, object_name: str) -> Path | None:
+def find_finished_image(
+    processed_root: Path | None, object_name: str, *, is_mosaic: bool = False
+) -> Path | None:
     if processed_root is None or not processed_root.is_dir():
         return None
-    normalized = object_name.casefold().replace(" ", "")
+    processed_name = f"{object_name}_mosaic" if is_mosaic else object_name
+    normalized = processed_name.casefold().replace(" ", "")
     proc_folders = [
         path for path in processed_root.rglob("proc")
         if path.is_dir() and path.parent.name.removesuffix("_sub").casefold().replace(" ", "") == normalized
@@ -457,11 +463,13 @@ def main(argv: list[str] | None = None) -> int:
         info = stack_info(image)
         if info is None:
             continue
-        frames, object_name = info
+        frames, object_name, is_mosaic = info
         if frames < args.min_frames:
             continue
         relative = image.relative_to(root)
-        finished = find_finished_image(processed_root, object_name)
+        finished = find_finished_image(
+            processed_root, object_name, is_mosaic=is_mosaic
+        )
         prepared.append(PreparedImage(image, frames, object_name, relative, finished))
 
     names = output_names(prepared)

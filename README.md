@@ -36,11 +36,13 @@ The collection follows a deliberate curation path:
 3. Prefer a finished image from a hand-processed `proc` folder when one exists.
 4. Otherwise, apply conservative color correction and histogram work to reduce strong red or green casts without inventing detail.
 5. Keep the original capture untouched and publish only the selected processed result.
-6. Reject an automated restack if alignment would crop away most of the field,
+6. When catalog aliases or repeat visits produce more than one public image of
+   the same target, use the local review desk to select one personal favorite.
+7. Reject an automated restack if alignment would crop away most of the field,
    then retry with full-field framing before it can enter the comparison set.
-7. Match the NightSkyAI star field to the Gallery edit's orientation and crop,
+8. Match the NightSkyAI star field to the Gallery edit's orientation and crop,
    without changing the Gallery reference or overwriting the full-field source.
-8. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
+9. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
 
 The result is not intended to compete with professional observatory imagery. It is a living record of what a small smart telescope can reveal from a backyard in Northern Michigan—and a more inviting way to share that record with other people.
 
@@ -135,6 +137,9 @@ aligned manifest as if its derivative were fresh source material.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
 - `public/images/` contains the selected processed captures.
 - `public/comparisons/` contains the immutable NightSkyAI comparison export and provenance manifest.
+- `gallery_cull_groups.json` defines repeated targets for the local one-winner
+  review queue; `review_candidates/` holds local-review-only comparison
+  candidates that are never served by the public site.
 - `scripts/audit_comparison_alignment.py` performs the deterministic,
   fail-closed star-field audit and produces verified aligned derivatives.
 - `db/schema.ts` and `drizzle/` define the small vote database.

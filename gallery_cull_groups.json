@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "groups": [
+    {
+      "id": "andromeda-galaxy",
+      "label": "Andromeda Galaxy",
+      "objects": [
+        "M 31"
+      ],
+      "candidate_overrides": {
+        "Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_hand_processed.png": "review_candidates/Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_cleaned.jpg"
+      }
+    },
+    {
+      "id": "western-veil-nebula",
+      "label": "Western Veil Nebula",
+      "objects": [
+        "C 34",
+        "NGC 6960"
+      ]
+    },
+    {
+      "id": "crescent-nebula",
+      "label": "Crescent Nebula",
+      "objects": [
+        "C 27",
+        "NGC 6888"
+      ]
+    }
+  ]
+}

@@ -35,6 +35,15 @@ def make_gallery(root: Path, filenames: list[str]) -> Path:
     return gallery
 
 
+def write_cull_groups(gallery: Path, groups: list[dict[str, object]]) -> Path:
+    path = gallery / "gallery_cull_groups.json"
+    path.write_text(
+        json.dumps({"schema_version": 1, "groups": groups}),
+        encoding="utf-8",
+    )
+    return path
+
+
 def make_stack(
     root: Path,
     *,
@@ -249,6 +258,380 @@ class MatchingTests(unittest.TestCase):
             self.assertEqual(unpaired_local, [])
             self.assertEqual(len(warnings), 1)
             self.assertIn("not a recognized JPEG or PNG", warnings[0])
+
+
+class GalleryCullTests(unittest.TestCase):
+    def test_configured_groups_match_aliases_ignore_mosaic_and_apply_override(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            m31 = "Stacked_201_M 31_10.0s_IRCUT_20251118-191752_hand_processed.png"
+            mosaic = "Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_hand_processed.png"
+            western_caldwell = "Stacked_136_C 34_20.0s_IRCUT_20260924-001000_cleaned.jpg"
+            western_ngc = "Stacked_277_NGC 6960_10.0s_LP_20260922-221229_cleaned.jpg"
+            eastern_veil = "Stacked_240_NGC 6992_10.0s_LP_20250925-213428_cleaned.jpg"
+            gallery = make_gallery(
+                root, [m31, mosaic, western_caldwell, western_ngc, eastern_veil]
+            )
+            override_relative = (
+                "work/review/Stacked_61_mosaic_M 31_10.0s_IRCUT_"
+                "20251223-200629_cleaned.jpg"
+            )
+            override = gallery / override_relative
+            override.parent.mkdir(parents=True)
+            override.write_bytes(jpeg_bytes(payload=b"actual mosaic review pixels"))
+            groups_path = write_cull_groups(
+                gallery,
+                [
+                    {
+                        "id": "andromeda",
+                        "label": "Andromeda Galaxy",
+                        "objects": ["M 31"],
+                        "candidate_overrides": {mosaic: override_relative},
+                    },
+                    {
+                        "id": "western-veil",
+                        "label": "Western Veil Nebula",
+                        "objects": ["C 34", "NGC 6960"],
+                    },
+                ],
+            )
+
+            images, warnings = compare.load_site_images(gallery, 1)
+            definitions = compare.load_cull_group_definitions(groups_path)
+            groups = compare.build_cull_groups(gallery, images, definitions)
+
+            self.assertEqual(warnings, [])
+            self.assertEqual([group.label for group in groups], ["Andromeda Galaxy", "Western Veil Nebula"])
+            andromeda = groups[0]
+            self.assertEqual(len(andromeda.candidates), 2)
+            overridden = next(item for item in andromeda.candidates if item.catalog_filename == mosaic)
+            self.assertTrue(overridden.overridden)
+            self.assertEqual(overridden.image.frames, 61)
+            self.assertEqual(overridden.image.object_name, "mosaic_M 31")
+            self.assertEqual(overridden.image.treatment, "cleaned")
+            self.assertEqual(overridden.review_file, override_relative)
+            all_catalog_files = {
+                candidate.catalog_filename for group in groups for candidate in group.candidates
+            }
+            self.assertNotIn(eastern_veil, all_catalog_files)
+
+    def test_only_configured_groups_with_two_candidates_are_built(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                [
+                    "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg",
+                    "Stacked_100_M 42_10.0s_LP_20260925-215000_cleaned.jpg",
+                ],
+            )
+            groups_path = write_cull_groups(
+                gallery,
+                [
+                    {"id": "andromeda", "label": "Andromeda", "objects": ["M 31"]},
+                    {"id": "orion", "label": "Orion", "objects": ["M 42"]},
+                ],
+            )
+
+            images, _warnings = compare.load_site_images(gallery, 1)
+            groups = compare.build_cull_groups(
+                gallery, images, compare.load_cull_group_definitions(groups_path)
+            )
+
+            self.assertEqual(groups, [])
+
+    def test_override_must_match_every_catalog_capture_identity_field(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            first = "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"
+            second = "Stacked_90_mosaic_M 31_10.0s_IRCUT_20260925-220000_cleaned.jpg"
+            gallery = make_gallery(root, [first, second])
+            cases = {
+                "frames": "Stacked_89_mosaic_M 31_10.0s_IRCUT_20260925-220000_hand_processed.png",
+                "object": "Stacked_90_mosaic_M 42_10.0s_IRCUT_20260925-220000_hand_processed.png",
+                "mosaic": "Stacked_90_M 31_10.0s_IRCUT_20260925-220000_hand_processed.png",
+                "exposure": "Stacked_90_mosaic_M 31_20.0s_IRCUT_20260925-220000_hand_processed.png",
+                "filter": "Stacked_90_mosaic_M 31_10.0s_LP_20260925-220000_hand_processed.png",
+                "timestamp": "Stacked_90_mosaic_M 31_10.0s_IRCUT_20260925-220001_hand_processed.png",
+            }
+            override_root = gallery / "work" / "identity-cases"
+            override_root.mkdir(parents=True)
+            images, _warnings = compare.load_site_images(gallery, 1)
+            for case_name, filename in cases.items():
+                with self.subTest(case=case_name):
+                    override = override_root / filename
+                    override.write_bytes(jpeg_bytes(payload=case_name.encode()))
+                    override_relative = str(override.relative_to(gallery).as_posix())
+                    groups_path = write_cull_groups(
+                        gallery,
+                        [
+                            {
+                                "id": "andromeda",
+                                "label": "Andromeda",
+                                "objects": ["M 31"],
+                                "candidate_overrides": {second: override_relative},
+                            }
+                        ],
+                    )
+                    with self.assertRaisesRegex(
+                        ValueError, "does not match catalog capture identity"
+                    ):
+                        compare.build_cull_groups(
+                            gallery,
+                            images,
+                            compare.load_cull_group_definitions(groups_path),
+                        )
+
+    def test_winner_resumes_and_changed_pixels_make_the_saved_group_orphaned(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            first = "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"
+            second = "Stacked_90_mosaic_M 31_10.0s_IRCUT_20260925-220000_cleaned.jpg"
+            gallery = make_gallery(root, [first, second])
+            groups_path = write_cull_groups(
+                gallery,
+                [{"id": "andromeda", "label": "Andromeda", "objects": ["M 31"]}],
+            )
+            images, _warnings = compare.load_site_images(gallery, 1)
+            definitions = compare.load_cull_group_definitions(groups_path)
+            group = compare.build_cull_groups(gallery, images, definitions)[0]
+            choices = gallery / "work" / "gallery_cull_choices.json"
+            winner = group.candidates[0]
+
+            record = compare.record_cull_choice(
+                choices,
+                {group.group_id: group},
+                group.group_id,
+                "winner",
+                winner.candidate_id,
+            )
+            payload = compare.cull_api_payload([group], compare.load_cull_choices(choices))
+
+            self.assertEqual(record["winner_catalog_filename"], winner.catalog_filename)
+            self.assertEqual(payload["summary"]["decided_count"], 1)
+            self.assertEqual(
+                payload["groups"][0]["choice"]["winner_candidate_id"],
+                winner.candidate_id,
+            )
+
+            winner.image.path.write_bytes(
+                jpeg_bytes(payload=b"changed after the review desk opened")
+            )
+            with self.assertRaisesRegex(ValueError, "changed while the review desk was open"):
+                compare.record_cull_choice(
+                    choices,
+                    {group.group_id: group},
+                    group.group_id,
+                    "skip",
+                )
+
+            refreshed_images, _warnings = compare.load_site_images(gallery, 1)
+            refreshed_group = compare.build_cull_groups(
+                gallery, refreshed_images, definitions
+            )[0]
+            refreshed_payload = compare.cull_api_payload(
+                [refreshed_group], compare.load_cull_choices(choices)
+            )
+            self.assertNotEqual(refreshed_group.group_id, group.group_id)
+            self.assertEqual(refreshed_payload["summary"]["decided_count"], 0)
+            self.assertEqual(refreshed_payload["summary"]["orphan_choice_count"], 1)
+            self.assertIsNone(refreshed_payload["groups"][0]["choice"])
+
+    def test_live_api_and_media_reject_changed_or_deleted_candidates(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            first = "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg"
+            second = "Stacked_90_mosaic_M 31_10.0s_IRCUT_20260925-220000_cleaned.jpg"
+            gallery = make_gallery(root, [first, second])
+            groups_path = write_cull_groups(
+                gallery,
+                [{"id": "andromeda", "label": "Andromeda", "objects": ["M 31"]}],
+            )
+            images, _warnings = compare.load_site_images(gallery, 1)
+            group = compare.build_cull_groups(
+                gallery, images, compare.load_cull_group_definitions(groups_path)
+            )[0]
+            choices = gallery / "work" / "gallery_cull_choices.json"
+            selected = group.candidates[0]
+            compare.record_cull_choice(
+                choices,
+                {group.group_id: group},
+                group.group_id,
+                "winner",
+                selected.candidate_id,
+            )
+            application = compare.GalleryCullApplication([group], choices)
+            selected_media_id = f"cull-{selected.candidate_id}"
+            selected_bytes = selected.image.path.read_bytes()
+
+            self.assertEqual(application.payload()["summary"]["decided_count"], 1)
+            self.assertEqual(application.read_media(selected_media_id)[1], selected_bytes)
+
+            selected.image.path.write_bytes(jpeg_bytes(payload=b"changed live pixels"))
+            with self.assertRaisesRegex(ValueError, "changed while the review desk was open"):
+                application.payload()
+            with self.assertRaisesRegex(ValueError, "changed; refresh"):
+                application.read_media(selected_media_id)
+
+            selected.image.path.write_bytes(selected_bytes)
+            deleted = group.candidates[1]
+            deleted_media_id = f"cull-{deleted.candidate_id}"
+            deleted.image.path.unlink()
+            with self.assertRaisesRegex(ValueError, "candidate is unavailable"):
+                application.payload()
+            with self.assertRaises(FileNotFoundError):
+                application.read_media(deleted_media_id)
+
+    def test_skip_is_undecided_and_tampered_snapshot_is_invalid(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                [
+                    "Stacked_100_C 34_10.0s_LP_20260925-215000_cleaned.jpg",
+                    "Stacked_90_NGC 6960_10.0s_LP_20260925-220000_cleaned.jpg",
+                ],
+            )
+            groups_path = write_cull_groups(
+                gallery,
+                [
+                    {
+                        "id": "western-veil",
+                        "label": "Western Veil",
+                        "objects": ["C 34", "NGC 6960"],
+                    }
+                ],
+            )
+            images, _warnings = compare.load_site_images(gallery, 1)
+            group = compare.build_cull_groups(
+                gallery, images, compare.load_cull_group_definitions(groups_path)
+            )[0]
+            choices = root / "choices.json"
+            compare.record_cull_choice(
+                choices, {group.group_id: group}, group.group_id, "skip"
+            )
+
+            payload = compare.cull_api_payload([group], compare.load_cull_choices(choices))
+            self.assertEqual(payload["summary"]["decided_count"], 0)
+            self.assertEqual(payload["groups"][0]["choice"]["choice"], "skip")
+
+            tampered = compare.load_cull_choices(choices)
+            tampered["choices"][group.group_id]["candidate_snapshot"] = []
+            compare.write_json(choices, tampered)
+            payload = compare.cull_api_payload([group], compare.load_cull_choices(choices))
+            self.assertEqual(payload["summary"]["invalid_choice_count"], 1)
+            self.assertIsNone(payload["groups"][0]["choice"])
+
+            stack_choices = root / "stack_choices.json"
+            compare.write_json(
+                stack_choices,
+                {"schema_version": 1, "tool": compare.TOOL_NAME, "choices": {}},
+            )
+            with self.assertRaisesRegex(ValueError, "invalid cull choices document"):
+                compare.load_cull_choices(stack_choices)
+
+    def test_choice_write_does_not_mutate_app_or_public_and_media_urls_are_opaque(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                [
+                    "Stacked_100_M 31_10.0s_IRCUT_20260925-215000_cleaned.jpg",
+                    "Stacked_90_mosaic_M 31_10.0s_IRCUT_20260925-220000_cleaned.jpg",
+                ],
+            )
+            groups_path = write_cull_groups(
+                gallery,
+                [{"id": "andromeda", "label": "Andromeda", "objects": ["M 31"]}],
+            )
+            before = {
+                path.relative_to(gallery): path.read_bytes()
+                for folder in (gallery / "app", gallery / "public")
+                for path in folder.rglob("*")
+                if path.is_file()
+            }
+            images, _warnings = compare.load_site_images(gallery, 1)
+            group = compare.build_cull_groups(
+                gallery, images, compare.load_cull_group_definitions(groups_path)
+            )[0]
+            choices = gallery / "work" / "gallery_cull_choices.json"
+            compare.record_cull_choice(
+                choices,
+                {group.group_id: group},
+                group.group_id,
+                "winner",
+                group.candidates[1].candidate_id,
+            )
+            after = {
+                path.relative_to(gallery): path.read_bytes()
+                for folder in (gallery / "app", gallery / "public")
+                for path in folder.rglob("*")
+                if path.is_file()
+            }
+            api = compare.cull_api_payload([group], compare.load_cull_choices(choices))
+            application = compare.GalleryCullApplication([group], choices)
+
+            self.assertEqual(after, before)
+            self.assertTrue(choices.is_file())
+            for candidate in api["groups"][0]["candidates"]:
+                self.assertRegex(candidate["media_url"], r"^/media/cull-[0-9a-f]{64}$")
+                self.assertNotIn(candidate["filename"], candidate["media_url"])
+            self.assertEqual(set(application.media), {
+                f"cull-{candidate.candidate_id}" for candidate in group.candidates
+            })
+
+    def test_cli_has_separate_cull_contract_and_protects_public_and_app(self):
+        args = compare.parse_args(
+            [
+                "cull",
+                "--gallery",
+                "/tmp/gallery",
+                "--groups",
+                "/tmp/gallery/gallery_cull_groups.json",
+                "--choices",
+                "/tmp/gallery/work/gallery_cull_choices.json",
+            ]
+        )
+        self.assertEqual(args.command, "cull")
+        self.assertEqual(args.port, 8765)
+        self.assertFalse(hasattr(args, "ours"))
+        self.assertEqual(compare.ReviewApplication.payload_path, "/api/pairs")
+        self.assertEqual(compare.ReviewApplication.choice_path, "/api/choice")
+        self.assertEqual(compare.GalleryCullApplication.payload_path, "/api/cull-groups")
+        self.assertEqual(compare.GalleryCullApplication.choice_path, "/api/cull-choice")
+        self.assertIn("Which capture earns the sky?", compare.CULL_HTML)
+        self.assertIn("Number(event.key)-1", compare.CULL_HTML)
+        self.assertIn("if(saving)return", compare.CULL_HTML)
+        self.assertIn("event.repeat||saving", compare.CULL_HTML)
+        self.assertIn("disabled=saving?' disabled':''", compare.CULL_HTML)
+        self.assertIn("candidates${saving?' saving':''}", compare.CULL_HTML)
+
+        with contextlib.redirect_stderr(io.StringIO()):
+            result = compare.main(
+                [
+                    "cull",
+                    "--gallery",
+                    "/tmp/gallery",
+                    "--groups",
+                    "/tmp/does-not-matter.json",
+                    "--choices",
+                    "/tmp/gallery/public/choices.json",
+                ]
+            )
+        self.assertEqual(result, 2)
+        with contextlib.redirect_stderr(io.StringIO()):
+            result = compare.main(
+                [
+                    "cull",
+                    "--gallery",
+                    "/tmp/gallery",
+                    "--groups",
+                    "/tmp/does-not-matter.json",
+                    "--choices",
+                    "/tmp/gallery/app/choices.json",
+                ]
+            )
+        self.assertEqual(result, 2)
 
 
 class ChoiceAndExportTests(unittest.TestCase):

@@ -1,6 +1,6 @@
 ---
 name: seestar-fits-stack-review
-description: Stack original Seestar FIT/FITS light frames directly from Brian's connected YOTUO, Seestar, or removable astronomy drive without duplicating the raw archive; optionally make an offline FITS copy when explicitly requested; and launch a side-by-side chooser comparing current Deep Space Field Notes images with locally stacked versions. Use when Brian says the YOTUO or Seestar drive is connected, asks to stack all targets himself, compare Seestar and Siril results, choose the cooler image, sync raw FITS for offline use, or prepare winners for the gallery.
+description: Stack original Seestar FIT/FITS light frames directly from Brian's connected YOTUO, Seestar, or removable astronomy drive without duplicating the raw archive; optionally make an offline FITS copy when explicitly requested; and launch the local review desk for Seestar versus NightSkyAI choices or one-winner gallery curation. Use when Brian says the YOTUO or Seestar drive is connected, asks to stack all targets himself, compare Seestar and Siril results, choose the cooler image, choose among repeated gallery targets, sync raw FITS for offline use, or prepare winners for the gallery.
 ---
 
 # Stack and Review Seestar FITS
@@ -207,7 +207,36 @@ Use filenames declared in `<gallery-root>/app/page.tsx` as the current
 gallery source of truth. Do not reintroduce a removed image just because a stale
 copy remains elsewhere.
 
-## 5. Export reviewed winners
+## 5. Choose one public image for repeated targets
+
+Keep target curation separate from the exact-session stack comparison above.
+The stack reviewer must still never alias C 34 with NGC 6960, C 27 with
+NGC 6888, or a mosaic with a standard capture. The culling queue may group
+those intentionally because its purpose is to select one public Gallery entry,
+not to claim that their source frames match.
+
+Start the same loopback-only review desk in culling mode:
+
+```bash
+python3 <gallery-root>/seestar_stack_compare.py cull \
+  --gallery <gallery-root> \
+  --groups <gallery-root>/gallery_cull_groups.json \
+  --choices <work-root>/gallery_cull_choices.json \
+  --port 8765
+```
+
+Open `http://127.0.0.1:8765/` for Brian. Show every configured repeated target
+with its real capture metadata and let Brian choose exactly one candidate or
+**Decide later**. The checked-in review candidate for the 61-frame Andromeda
+mosaic is its distinct original image, not the accidentally duplicated finished
+M 31 edit. Store culling decisions separately from `stack_choices.json`.
+
+The culling desk never edits `app/page.tsx` or `public/images`. After every
+group has a winner, use the exact saved filenames and hashes to prepare a
+separate, reviewable Gallery diff. Do not publish merely because the local
+choice file is complete.
+
+## 6. Export reviewed stack winners
 
 After all available pairs are decided, create a new selection snapshot:
 
@@ -227,6 +256,7 @@ a separate explicit action after Brian approves the selected set.
 
 Report the removable source, discovered FITS count/bytes, eligible/completed/
 failed stack groups, matched/undecided comparisons, review URL, decisions file,
-and winner snapshot when exported. Call out low-frame targets, mosaics,
-conflicts, and unpaired images. If an optional offline archive exists, report
-its size without deleting it unless Brian explicitly asks.
+and winner snapshot when exported. When culling repeated targets, also report
+the culling choice file and decided/undecided groups. Call out low-frame
+targets, mosaics, conflicts, and unpaired images. If an optional offline archive
+exists, report its size without deleting it unless Brian explicitly asks.

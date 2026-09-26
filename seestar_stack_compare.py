@@ -29,6 +29,9 @@ from urllib.parse import urlparse
 
 TOOL_NAME = "seestar_stack_compare"
 CHOICES_SCHEMA_VERSION = 1
+CULL_TOOL_NAME = "seestar_gallery_cull"
+CULL_CHOICES_SCHEMA_VERSION = 1
+CULL_GROUPS_SCHEMA_VERSION = 1
 EXPORT_SCHEMA_VERSION = 1
 PUBLIC_EXPORT_SCHEMA_VERSION = 1
 DEFAULT_MIN_FRAMES = 50
@@ -98,6 +101,31 @@ class ComparisonPair:
     target: str
     site: SiteImage
     ours: tuple[LocalStack, ...]
+
+
+@dataclass(frozen=True)
+class CullGroupDefinition:
+    definition_id: str
+    label: str
+    object_ids: tuple[str, ...]
+    candidate_overrides: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class CullCandidate:
+    catalog_filename: str
+    review_file: str
+    image: SiteImage
+    overridden: bool
+    candidate_id: str
+
+
+@dataclass(frozen=True)
+class CullGroup:
+    group_id: str
+    definition_id: str
+    label: str
+    candidates: tuple[CullCandidate, ...]
 
 
 def utc_now() -> str:
@@ -316,6 +344,236 @@ def _is_relative_to(path: Path, parent: Path) -> bool:
         return False
 
 
+def load_cull_group_definitions(path: Path) -> list[CullGroupDefinition]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read cull groups {path}: {exc}") from exc
+    if not isinstance(payload, dict) or payload.get("schema_version") != CULL_GROUPS_SCHEMA_VERSION:
+        raise ValueError(f"invalid cull groups document: {path}")
+    raw_groups = payload.get("groups")
+    if not isinstance(raw_groups, list):
+        raise ValueError(f"cull groups must be a list: {path}")
+
+    definitions: list[CullGroupDefinition] = []
+    seen_definition_ids: set[str] = set()
+    object_owners: dict[str, str] = {}
+    for index, raw_group in enumerate(raw_groups, start=1):
+        if not isinstance(raw_group, dict):
+            raise ValueError(f"cull group {index} must be an object")
+        definition_id = raw_group.get("id")
+        label = raw_group.get("label")
+        raw_objects = raw_group.get("objects")
+        raw_overrides = raw_group.get("candidate_overrides", {})
+        if not isinstance(definition_id, str) or not definition_id.strip():
+            raise ValueError(f"cull group {index} has no valid id")
+        if definition_id in seen_definition_ids:
+            raise ValueError(f"duplicate cull group id: {definition_id}")
+        if not isinstance(label, str) or not label.strip():
+            raise ValueError(f"cull group {definition_id} has no valid label")
+        if not isinstance(raw_objects, list) or not raw_objects:
+            raise ValueError(f"cull group {definition_id} must list at least one object")
+        if not isinstance(raw_overrides, dict):
+            raise ValueError(f"cull group {definition_id} candidate_overrides must be an object")
+
+        object_ids: list[str] = []
+        for raw_object in raw_objects:
+            if not isinstance(raw_object, str) or not raw_object.strip():
+                raise ValueError(f"cull group {definition_id} contains an invalid object")
+            object_id, _mosaic = canonical_object(raw_object)
+            owner = object_owners.get(object_id)
+            if owner is not None and owner != definition_id:
+                raise ValueError(
+                    f"cull object {raw_object!r} belongs to both {owner} and {definition_id}"
+                )
+            object_owners[object_id] = definition_id
+            if object_id not in object_ids:
+                object_ids.append(object_id)
+
+        overrides: list[tuple[str, str]] = []
+        for catalog_filename, review_file in raw_overrides.items():
+            if not isinstance(catalog_filename, str) or not catalog_filename:
+                raise ValueError(f"cull group {definition_id} has an invalid override filename")
+            if not isinstance(review_file, str) or not review_file:
+                raise ValueError(
+                    f"cull override for {catalog_filename!r} must name a repository-relative file"
+                )
+            overrides.append((catalog_filename, review_file))
+
+        seen_definition_ids.add(definition_id)
+        definitions.append(
+            CullGroupDefinition(
+                definition_id=definition_id,
+                label=label.strip(),
+                object_ids=tuple(object_ids),
+                candidate_overrides=tuple(sorted(overrides)),
+            )
+        )
+    return definitions
+
+
+def _review_site_image(gallery: Path, review_file: str) -> SiteImage:
+    relative = Path(review_file)
+    if relative.is_absolute():
+        raise ValueError(f"cull override must be repository-relative: {review_file}")
+    unresolved = gallery / relative
+    if unresolved.is_symlink():
+        raise ValueError(f"cull override may not be a symbolic link: {review_file}")
+    resolved_gallery = gallery.resolve()
+    resolved = unresolved.resolve()
+    if not _is_relative_to(resolved, resolved_gallery):
+        raise ValueError(f"cull override resolves outside the gallery: {review_file}")
+    if not resolved.is_file():
+        raise ValueError(f"cull override file does not exist: {review_file}")
+    parsed = SITE_FILENAME.fullmatch(resolved.name)
+    if not parsed:
+        raise ValueError(f"cull override filename is not recognized: {review_file}")
+    frames = int(parsed.group("frames"))
+    if frames < 1:
+        raise ValueError(f"cull override frame count must be positive: {review_file}")
+    object_name = parsed.group("object")
+    width, height = image_dimensions(resolved)
+    return SiteImage(
+        path=resolved,
+        filename=resolved.name,
+        frames=frames,
+        object_name=object_name,
+        treatment=parsed.group("treatment").replace("_", " "),
+        timestamp=parsed.group("timestamp"),
+        key=match_key(object_name, parsed.group("exposure"), parsed.group("filter")),
+        sha256=sha256_file(resolved),
+        width=width,
+        height=height,
+    )
+
+
+def cull_candidate_snapshot(group: CullGroup) -> list[dict[str, object]]:
+    return [
+        {
+            "candidate_id": candidate.candidate_id,
+            "catalog_filename": candidate.catalog_filename,
+            "review_file": candidate.review_file,
+            "review_sha256": candidate.image.sha256,
+        }
+        for candidate in group.candidates
+    ]
+
+
+def verify_cull_group_files(groups: list[CullGroup] | tuple[CullGroup, ...]) -> None:
+    for group in groups:
+        for candidate in group.candidates:
+            try:
+                current_sha256 = sha256_file(candidate.image.path)
+            except OSError as exc:
+                raise ValueError(
+                    f"cull candidate is unavailable: {candidate.image.filename}"
+                ) from exc
+            if current_sha256 != candidate.image.sha256:
+                raise ValueError(
+                    f"cull candidate changed while the review desk was open: "
+                    f"{candidate.image.filename}"
+                )
+
+
+def _cull_capture_identity(image: SiteImage) -> tuple[object, ...]:
+    return (
+        image.frames,
+        image.key.object_id,
+        image.key.mosaic,
+        image.key.exposure,
+        image.key.filter_name,
+        image.timestamp,
+    )
+
+
+def build_cull_groups(
+    gallery: Path,
+    site_images: list[SiteImage],
+    definitions: list[CullGroupDefinition],
+) -> list[CullGroup]:
+    resolved_gallery = gallery.resolve()
+    catalog_by_filename = {image.filename: image for image in site_images}
+    groups: list[CullGroup] = []
+    for definition in definitions:
+        overrides = dict(definition.candidate_overrides)
+        for catalog_filename in overrides:
+            catalog_image = catalog_by_filename.get(catalog_filename)
+            if catalog_image is None:
+                raise ValueError(
+                    f"cull override does not name a current catalog image: {catalog_filename}"
+                )
+            if catalog_image.key.object_id not in definition.object_ids:
+                raise ValueError(
+                    f"cull override {catalog_filename} does not belong to group "
+                    f"{definition.definition_id}"
+                )
+
+        candidates: list[CullCandidate] = []
+        for catalog_image in site_images:
+            if catalog_image.key.object_id not in definition.object_ids:
+                continue
+            review_file = overrides.get(catalog_image.filename)
+            if review_file is None:
+                image = catalog_image
+                relative_review_file = str(
+                    catalog_image.path.relative_to(resolved_gallery).as_posix()
+                )
+                overridden = False
+            else:
+                image = _review_site_image(resolved_gallery, review_file)
+                if _cull_capture_identity(image) != _cull_capture_identity(catalog_image):
+                    raise ValueError(
+                        f"cull override {review_file} does not match catalog capture identity "
+                        f"for {catalog_image.filename}"
+                    )
+                relative_review_file = str(image.path.relative_to(resolved_gallery).as_posix())
+                overridden = True
+            identity = json.dumps(
+                {
+                    "catalog_filename": catalog_image.filename,
+                    "review_file": relative_review_file,
+                    "review_sha256": image.sha256,
+                },
+                sort_keys=True,
+            )
+            candidates.append(
+                CullCandidate(
+                    catalog_filename=catalog_image.filename,
+                    review_file=relative_review_file,
+                    image=image,
+                    overridden=overridden,
+                    candidate_id=hashlib.sha256(identity.encode("utf-8")).hexdigest(),
+                )
+            )
+        if len(candidates) < 2:
+            continue
+        candidates.sort(key=lambda item: (-item.image.frames, item.catalog_filename.casefold()))
+        group_identity = json.dumps(
+            {
+                "definition_id": definition.definition_id,
+                "candidates": [
+                    {
+                        "candidate_id": candidate.candidate_id,
+                        "catalog_filename": candidate.catalog_filename,
+                        "review_sha256": candidate.image.sha256,
+                    }
+                    for candidate in candidates
+                ],
+            },
+            sort_keys=True,
+        )
+        groups.append(
+            CullGroup(
+                group_id=hashlib.sha256(group_identity.encode("utf-8")).hexdigest(),
+                definition_id=definition.definition_id,
+                label=definition.label,
+                candidates=tuple(candidates),
+            )
+        )
+    groups.sort(key=lambda group: (group.label.casefold(), group.definition_id))
+    return groups
+
+
 def load_local_stacks(root: Path, min_frames: int) -> tuple[list[LocalStack], list[str]]:
     stacks: list[LocalStack] = []
     warnings: list[str] = []
@@ -505,6 +763,185 @@ def write_json(path: Path, payload: dict[str, object]) -> None:
     temporary = path.with_name(f".{path.name}.tmp")
     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     temporary.replace(path)
+
+
+def load_cull_choices(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        return {
+            "schema_version": CULL_CHOICES_SCHEMA_VERSION,
+            "tool": CULL_TOOL_NAME,
+            "updated_at": None,
+            "choices": {},
+        }
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read cull choices {path}: {exc}") from exc
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != CULL_CHOICES_SCHEMA_VERSION
+        or payload.get("tool") != CULL_TOOL_NAME
+        or not isinstance(payload.get("choices"), dict)
+    ):
+        raise ValueError(f"invalid cull choices document: {path}")
+    return payload
+
+
+def record_cull_choice(
+    choices_path: Path,
+    groups_by_id: dict[str, CullGroup],
+    group_id: str,
+    choice: str,
+    candidate_id: str | None = None,
+) -> dict[str, object]:
+    if choice not in {"winner", "skip"}:
+        raise ValueError("cull choice must be winner or skip")
+    group = groups_by_id.get(group_id)
+    if group is None:
+        raise ValueError("cull group is stale or unknown; refresh before choosing")
+    verify_cull_group_files([group])
+
+    selected: CullCandidate | None = None
+    if choice == "winner":
+        selected = next(
+            (candidate for candidate in group.candidates if candidate.candidate_id == candidate_id),
+            None,
+        )
+        if selected is None:
+            raise ValueError("choose one of the available gallery candidates")
+
+    payload = load_cull_choices(choices_path)
+    choices = payload["choices"]
+    assert isinstance(choices, dict)
+    record: dict[str, object] = {
+        "group_id": group.group_id,
+        "definition_id": group.definition_id,
+        "label": group.label,
+        "choice": choice,
+        "selected_at": utc_now(),
+        "candidate_snapshot": cull_candidate_snapshot(group),
+    }
+    if selected is not None:
+        record.update(
+            {
+                "winner_candidate_id": selected.candidate_id,
+                "winner_catalog_filename": selected.catalog_filename,
+                "winner_review_file": selected.review_file,
+                "winner_sha256": selected.image.sha256,
+            }
+        )
+    choices[group.group_id] = record
+    payload["schema_version"] = CULL_CHOICES_SCHEMA_VERSION
+    payload["tool"] = CULL_TOOL_NAME
+    payload["updated_at"] = utc_now()
+    write_json(choices_path, payload)
+    return record
+
+
+def resolve_saved_cull_choice(
+    group: CullGroup, raw_choice: object
+) -> tuple[str, CullCandidate | None]:
+    if raw_choice is None:
+        return "missing", None
+    if not isinstance(raw_choice, dict):
+        raise ValueError(f"invalid cull choice for {group.label}: record is not an object")
+    expected: dict[str, object] = {
+        "group_id": group.group_id,
+        "definition_id": group.definition_id,
+        "label": group.label,
+        "candidate_snapshot": cull_candidate_snapshot(group),
+    }
+    for key, value in expected.items():
+        if raw_choice.get(key) != value:
+            raise ValueError(f"stale cull choice for {group.label}: {key} no longer matches")
+    if not isinstance(raw_choice.get("selected_at"), str) or not raw_choice["selected_at"]:
+        raise ValueError(f"invalid cull choice for {group.label}: selected_at is missing")
+    choice = raw_choice.get("choice")
+    if choice == "skip":
+        return "skip", None
+    if choice != "winner":
+        raise ValueError(f"invalid cull choice for {group.label}: unrecognized choice")
+    candidate = next(
+        (
+            item
+            for item in group.candidates
+            if item.candidate_id == raw_choice.get("winner_candidate_id")
+        ),
+        None,
+    )
+    if candidate is None:
+        raise ValueError(f"stale cull winner for {group.label}; review it again")
+    winner_expected = {
+        "winner_catalog_filename": candidate.catalog_filename,
+        "winner_review_file": candidate.review_file,
+        "winner_sha256": candidate.image.sha256,
+    }
+    for key, value in winner_expected.items():
+        if raw_choice.get(key) != value:
+            raise ValueError(f"stale cull winner for {group.label}: {key} no longer matches")
+    return "winner", candidate
+
+
+def cull_group_to_api(group: CullGroup, choice: object) -> dict[str, object]:
+    hash_counts: dict[str, int] = {}
+    for candidate in group.candidates:
+        hash_counts[candidate.image.sha256] = hash_counts.get(candidate.image.sha256, 0) + 1
+    return {
+        "group_id": group.group_id,
+        "definition_id": group.definition_id,
+        "label": group.label,
+        "choice": choice,
+        "candidates": [
+            {
+                "candidate_id": candidate.candidate_id,
+                "catalog_filename": candidate.catalog_filename,
+                "filename": candidate.image.filename,
+                "object": candidate.image.object_name,
+                "frames": candidate.image.frames,
+                "treatment": candidate.image.treatment,
+                "timestamp": candidate.image.timestamp,
+                "exposure": candidate.image.key.exposure,
+                "filter": candidate.image.key.filter_name,
+                "mosaic": candidate.image.key.mosaic,
+                "overridden": candidate.overridden,
+                "same_pixels": hash_counts[candidate.image.sha256] > 1,
+                "media_url": f"/media/cull-{candidate.candidate_id}",
+            }
+            for candidate in group.candidates
+        ],
+    }
+
+
+def cull_api_payload(
+    groups: list[CullGroup], choices_payload: dict[str, object]
+) -> dict[str, object]:
+    verify_cull_group_files(groups)
+    choices = choices_payload.get("choices", {})
+    assert isinstance(choices, dict)
+    api_groups: list[dict[str, object]] = []
+    decided = 0
+    invalid = 0
+    current_group_ids = {group.group_id for group in groups}
+    for group in groups:
+        raw_choice = choices.get(group.group_id)
+        try:
+            status, _candidate = resolve_saved_cull_choice(group, raw_choice)
+        except ValueError:
+            status = "invalid"
+            invalid += 1
+        if status == "winner":
+            decided += 1
+        visible_choice = raw_choice if status in {"winner", "skip"} else None
+        api_groups.append(cull_group_to_api(group, visible_choice))
+    return {
+        "groups": api_groups,
+        "summary": {
+            "group_count": len(groups),
+            "decided_count": decided,
+            "invalid_choice_count": invalid,
+            "orphan_choice_count": len(set(choices) - current_group_ids),
+        },
+    }
 
 
 def record_choice(
@@ -711,7 +1148,56 @@ load();
 </script></body></html>'''
 
 
+CULL_HTML = r'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery Culling Review</title>
+  <style>
+    :root{color-scheme:dark;--ink:#e9edf0;--muted:#95a0a8;--amber:#d59b55;--line:#273037;--panel:#0c1115}
+    *{box-sizing:border-box}body{margin:0;background:#050809;color:var(--ink);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% -10%,#23303a99,transparent 42%),linear-gradient(#0000 70%,#07100d)}
+    main{position:relative;width:min(1700px,100%);margin:auto;padding:22px}.top{display:flex;gap:22px;justify-content:space-between;align-items:end;margin-bottom:16px}
+    .eyebrow{color:var(--amber);font:600 11px/1.2 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase}h1{margin:.25rem 0 0;font:400 clamp(26px,4vw,48px)/1.05 Georgia,serif}
+    .status{text-align:right;color:var(--muted)}.bar{width:min(360px,38vw);height:3px;background:#253038;margin-top:8px}.fill{height:100%;background:var(--amber);transition:width .2s}
+    .target{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-bottom:0;background:#090d10;padding:12px 14px}.target h2{margin:0;font:400 21px/1.2 Georgia,serif}.count{color:var(--muted);font-family:ui-monospace,monospace}
+    .candidates{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(390px,100%),1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.candidates.saving{pointer-events:none;opacity:.65}
+    figure{margin:0;background:#020303;display:grid;grid-template-rows:auto 1fr auto;min-width:0;outline:1px solid transparent}figure.selected{outline-color:var(--amber);z-index:1}
+    .label{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;background:var(--panel);border-bottom:1px solid var(--line);color:var(--muted)}.label strong{color:var(--ink);font-weight:600}.meta{text-align:right}.badge{color:var(--amber)}
+    .image-wrap{display:grid;place-items:center;min-height:420px;overflow:hidden;background:radial-gradient(circle,#10171a,#010202 70%)}img{display:block;max-width:100%;max-height:calc(68vh - 110px);object-fit:contain}
+    .pick{border:0;border-top:1px solid var(--line);background:#0d1317;color:var(--ink);padding:12px 16px;cursor:pointer}.pick:hover{color:var(--amber)}figure.selected .pick{background:#6d4b27;color:#fff}
+    .controls{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:16px 0}.controls button{border:1px solid #39434a;background:#0d1317;color:var(--ink);padding:11px 16px;border-radius:2px;cursor:pointer}.controls button:hover{border-color:var(--amber)}.controls button.selected{background:#6d4b27;border-color:#e1ad6b}.controls button:disabled,.pick:disabled{cursor:wait;opacity:.6}
+    .foot{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.empty{border:1px solid var(--line);padding:48px;text-align:center;color:var(--muted)}
+    @media(max-width:760px){main{padding:12px}.top{align-items:start}.status{font-size:12px}.bar{width:30vw}.candidates{grid-template-columns:1fr}.image-wrap{min-height:54vh}img{max-height:54vh}.target{position:sticky;top:0;z-index:2}.foot{display:block}.foot span{display:block;margin-top:4px}}
+  </style>
+</head>
+<body><main><header class="top"><div><div class="eyebrow">Northern Michigan · Offline gallery curation</div><h1>Which capture earns the sky?</h1></div><div class="status"><span id="progress">Loading…</span><div class="bar"><div class="fill" id="fill"></div></div></div></header><section id="app"></section><footer class="foot"><span>←/→ move · number chooses · S decide later</span><span>Choices save locally; the gallery is never overwritten.</span></footer></main>
+<script>
+let data={groups:[],summary:{}}, index=0, saving=false;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function load(){const response=await fetch('/api/cull-groups',{cache:'no-store'});data=await response.json();if(!response.ok)throw new Error(data.error||'Could not load culling groups');render()}
+function current(){return data.groups[index]}
+function render(){
+ const app=document.querySelector('#app'), total=data.groups.length, decided=data.summary.decided_count||0;
+ document.querySelector('#progress').textContent=`${decided} of ${total} decided`;
+ document.querySelector('#fill').style.width=total?`${decided/total*100}%`:'0%';
+ if(!total){app.innerHTML='<div class="empty"><h2>No duplicate groups need review</h2><p>The configured targets do not currently contain two or more gallery candidates.</p></div>';return}
+ const group=current(), winner=group.choice?.choice==='winner'?group.choice.winner_candidate_id:null, disabled=saving?' disabled':'';
+ const cards=group.candidates.map((candidate,position)=>`<figure class="${winner===candidate.candidate_id?'selected':''}"><figcaption class="label"><div><strong>${esc(candidate.object)}${candidate.mosaic?' · Mosaic':''}</strong><br><span>${esc(candidate.filename)}</span></div><div class="meta">${candidate.frames} frames · ${esc(candidate.filter)}<br>${esc(candidate.treatment)}${candidate.overridden?' · review candidate':''}${candidate.same_pixels?'<br><span class="badge">Same pixels as another entry</span>':''}</div></figcaption><div class="image-wrap"><img src="${candidate.media_url}" alt="Candidate ${position+1} for ${esc(group.label)}"></div><button class="pick" onclick="choose('winner','${candidate.candidate_id}')"${disabled}>${position+1} · Keep this capture</button></figure>`).join('');
+ app.innerHTML=`<div class="target"><h2>${esc(group.label)}</h2><span class="count">${index+1} / ${total}</span></div><div class="candidates${saving?' saving':''}">${cards}</div><div class="controls"><button onclick="move(-1)"${disabled}>← Previous</button><button class="${group.choice?.choice==='skip'?'selected':''}" onclick="choose('skip')"${disabled}>S · Decide later</button><button onclick="move(1)"${disabled}>Next →</button></div>`;
+}
+function move(delta){if(saving||!data.groups.length)return;index=(index+delta+data.groups.length)%data.groups.length;render()}
+async function choose(choice,candidate){if(saving)return;const group=current();if(!group)return;saving=true;render();try{const response=await fetch('/api/cull-choice',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({group_id:group.group_id,choice,candidate_id:candidate})});const payload=await response.json();if(!response.ok){alert(payload.error||'Could not save choice');return}const oldIndex=index;await load();index=Math.min(oldIndex,data.groups.length-1);if(index<data.groups.length-1)index++}catch(error){alert(error.message||'Could not save choice')}finally{saving=false;render()}}
+addEventListener('keydown',event=>{if(event.repeat||saving)return;if(event.key==='ArrowLeft')move(-1);else if(event.key==='ArrowRight')move(1);else if(event.key.toLowerCase()==='s')choose('skip');else if(/^[1-9]$/.test(event.key)){const group=current(),candidate=group?.candidates[Number(event.key)-1];if(candidate)choose('winner',candidate.candidate_id)}});
+load().catch(error=>{document.querySelector('#app').innerHTML=`<div class="empty"><h2>Could not open review</h2><p>${esc(error.message)}</p></div>`});
+</script></body></html>'''
+
+
 class ReviewApplication:
+    index_html = HTML
+    payload_path = "/api/pairs"
+    choice_path = "/api/choice"
+
     def __init__(
         self,
         pairs: list[ComparisonPair],
@@ -746,8 +1232,58 @@ class ReviewApplication:
                 str(request["candidate_id"]) if request.get("candidate_id") else None,
             )
 
+    def read_media(self, media_id: str) -> tuple[Path, bytes]:
+        path = self.media.get(media_id)
+        if path is None:
+            raise FileNotFoundError("media not found")
+        return path, path.read_bytes()
 
-def make_handler(application: ReviewApplication):
+
+class GalleryCullApplication:
+    index_html = CULL_HTML
+    payload_path = "/api/cull-groups"
+    choice_path = "/api/cull-choice"
+
+    def __init__(self, groups: list[CullGroup], choices_path: Path) -> None:
+        self.groups = groups
+        self.choices_path = choices_path
+        self.groups_by_id = {group.group_id: group for group in groups}
+        self.media: dict[str, Path] = {}
+        self.media_sha256: dict[str, str] = {}
+        for group in groups:
+            for candidate in group.candidates:
+                media_id = f"cull-{candidate.candidate_id}"
+                self.media[media_id] = candidate.image.path
+                self.media_sha256[media_id] = candidate.image.sha256
+        self.lock = threading.Lock()
+
+    def payload(self) -> dict[str, object]:
+        with self.lock:
+            choices = load_cull_choices(self.choices_path)
+        return cull_api_payload(self.groups, choices)
+
+    def choose(self, request: dict[str, object]) -> dict[str, object]:
+        with self.lock:
+            return record_cull_choice(
+                self.choices_path,
+                self.groups_by_id,
+                str(request.get("group_id", "")),
+                str(request.get("choice", "")),
+                str(request["candidate_id"]) if request.get("candidate_id") else None,
+            )
+
+    def read_media(self, media_id: str) -> tuple[Path, bytes]:
+        path = self.media.get(media_id)
+        expected_sha256 = self.media_sha256.get(media_id)
+        if path is None or expected_sha256 is None:
+            raise FileNotFoundError("media not found")
+        body = path.read_bytes()
+        if hashlib.sha256(body).hexdigest() != expected_sha256:
+            raise ValueError("cull candidate changed; refresh the review desk")
+        return path, body
+
+
+def make_handler(application: Any):
     class Handler(BaseHTTPRequestHandler):
         server_version = "SeestarReview/1.0"
 
@@ -769,9 +1305,9 @@ def make_handler(application: ReviewApplication):
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
             if parsed.path == "/":
-                self.send_bytes(HTML.encode("utf-8"), "text/html; charset=utf-8")
+                self.send_bytes(application.index_html.encode("utf-8"), "text/html; charset=utf-8")
                 return
-            if parsed.path == "/api/pairs":
+            if parsed.path == application.payload_path:
                 try:
                     self.send_json(application.payload())
                 except ValueError as exc:
@@ -779,20 +1315,24 @@ def make_handler(application: ReviewApplication):
                 return
             if parsed.path.startswith("/media/"):
                 media_id = parsed.path.removeprefix("/media/")
-                path = application.media.get(media_id)
-                if path is None or not path.is_file():
+                try:
+                    path, body = application.read_media(media_id)
+                except FileNotFoundError:
                     self.send_json({"error": "media not found"}, HTTPStatus.NOT_FOUND)
                     return
-                content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-                try:
-                    self.send_bytes(path.read_bytes(), content_type)
+                except ValueError as exc:
+                    self.send_json({"error": str(exc)}, HTTPStatus.CONFLICT)
+                    return
                 except OSError as exc:
                     self.send_json({"error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+                    return
+                content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+                self.send_bytes(body, content_type)
                 return
             self.send_json({"error": "not found"}, HTTPStatus.NOT_FOUND)
 
         def do_POST(self) -> None:
-            if urlparse(self.path).path != "/api/choice":
+            if urlparse(self.path).path != application.choice_path:
                 self.send_json({"error": "not found"}, HTTPStatus.NOT_FOUND)
                 return
             try:
@@ -845,6 +1385,45 @@ def command_serve(args: argparse.Namespace) -> int:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nReview server stopped.")
+    finally:
+        server.server_close()
+    return 0
+
+
+def command_cull(args: argparse.Namespace) -> int:
+    gallery = args.gallery.expanduser().resolve()
+    groups_path = args.groups.expanduser().resolve()
+    choices = args.choices.expanduser().resolve()
+    public_root = (gallery / "public").resolve()
+    app_root = (gallery / "app").resolve()
+    if _is_relative_to(choices, public_root) or _is_relative_to(choices, app_root):
+        print("Error: cull choices may not be stored under public/ or app/", file=sys.stderr)
+        return 2
+    try:
+        site_images, warnings = load_site_images(gallery, 1)
+        definitions = load_cull_group_definitions(groups_path)
+        groups = build_cull_groups(gallery, site_images, definitions)
+        load_cull_choices(choices)
+    except (OSError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+    for warning in warnings:
+        print(f"Warning: {warning}", file=sys.stderr)
+    print(
+        f"Gallery culling set: {len(groups)} duplicate groups from "
+        f"{len(definitions)} configured groups."
+    )
+    application = GalleryCullApplication(groups, choices)
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(application))
+    url = f"http://127.0.0.1:{server.server_port}/"
+    print(f"Open the gallery culling review at {url}")
+    print("Press Ctrl-C to stop it.")
+    if args.open:
+        webbrowser.open(url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nGallery culling server stopped.")
     finally:
         server.server_close()
     return 0
@@ -1234,6 +1813,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     serve.add_argument("--open", action="store_true", help="Open the review page in the default browser.")
     serve.set_defaults(func=command_serve)
 
+    cull = subparsers.add_parser(
+        "cull", help="Launch the local chooser for configured duplicate gallery captures."
+    )
+    cull.add_argument("--gallery", required=True, type=Path, help="Deep Space Field Notes site repository.")
+    cull.add_argument("--groups", required=True, type=Path, help="Checked-in gallery culling groups JSON.")
+    cull.add_argument("--choices", required=True, type=Path, help="Separate JSON file for culling choices.")
+    cull.add_argument("--port", type=int, default=8765, help="Loopback port; use 0 to choose a free port.")
+    cull.add_argument("--open", action="store_true", help="Open the culling page in the default browser.")
+    cull.set_defaults(func=command_cull)
+
     export = subparsers.add_parser("export", help="Copy chosen winners into a new review snapshot.")
     add_source_options(export)
     export.add_argument("--destination", required=True, type=Path, help="Parent folder for selection snapshots.")
@@ -1263,7 +1852,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    if args.min_frames < 1:
+    if getattr(args, "min_frames", 1) < 1:
         print("Error: --min-frames must be positive", file=sys.stderr)
         return 2
     if args.command == "export-public" and args.min_frames < DEFAULT_MIN_FRAMES:

@@ -23,6 +23,7 @@ the Gallery edit as the immutable alignment reference for public comparisons.
 | --- | --- | --- |
 | Make the best existing Seestar JPEGs available offline | Collect, then clean | A small offline set and a cleanup manifest |
 | Rebuild targets from the original light frames | Stack, then review | Reproducible Siril stacks and human choices |
+| Choose one public photo when a target was captured twice | Cull repeated targets | One personal winner per configured object |
 | Prepare a fair Seestar/NightSkyAI comparison | Export a release candidate, then align | Both treatments show the same sky orientation and framing |
 | Update the public experience | Promote the reviewed candidate, validate, then publish | A tested, versioned site release |
 
@@ -126,7 +127,27 @@ When all pairs are decided, ask:
 > Export the reviewed winners as a new immutable snapshot. Do not use the
 > incomplete override.
 
-### Stage 4 — audit orientation before a public comparison
+### Stage 4 — choose one Gallery image for repeated targets
+
+Use a request such as:
+
+> Open the Gallery culling queue in the same local review desk. Let me choose
+> one image for every repeated target, save my choices locally, and do not
+> change or publish the Gallery yet.
+
+This is intentionally separate from Seestar-versus-NightSkyAI review. It may
+group alternate catalog names such as C 34 and NGC 6960 because the question is
+which single finished photograph should remain public—not whether the source
+frames belong to the same capture session. The Andromeda comparison uses the
+distinct original 61-frame mosaic rather than the duplicate processed file that
+was accidentally substituted during curation.
+
+The culling desk records one winner per group in
+`work/gallery_cull_choices.json`. It never edits `app/page.tsx`, removes an
+image, or publishes the site. Apply the completed choices later as a separate
+reviewed Gallery change.
+
+### Stage 5 — audit orientation before a public comparison
 
 Use a request such as:
 
@@ -152,7 +173,7 @@ aligned. For that bundle, ask the skill to **verify** it. Do not run `audit` on
 an aligned manifest; the tool rejects that because the derivative must not be
 mistaken for an original source.
 
-### Stage 5 — validate and publish
+### Stage 6 — validate and publish
 
 Use a final request such as:
 
@@ -377,7 +398,30 @@ The exporter creates a new UTC-named directory containing the chosen files and
 not use `--allow-incomplete` in the normal workflow: a **Decide later** choice
 should remain a visible release blocker.
 
-### 6. Prepare and align a public comparison candidate
+### 6. Choose one Gallery image for repeated targets
+
+Launch the same local review desk in culling mode:
+
+```bash
+python seestar_stack_compare.py cull \
+  --gallery . \
+  --groups gallery_cull_groups.json \
+  --choices "$WORK_ROOT/gallery_cull_choices.json" \
+  --port 8765 \
+  --open
+```
+
+The three configured groups are Andromeda, Western Veil, and Crescent Nebula.
+NGC 6992 remains separate because it is the Eastern Veil. The Andromeda pair
+uses the distinct original mosaic stored under `review_candidates/`, so both
+choices represent real captures. Number keys select a winner; **Decide later**
+remains incomplete.
+
+The choice file records the exact candidate filenames and hashes, but this
+command never changes the tracked Gallery. Review and apply the completed
+choices in a separate Git diff.
+
+### 7. Prepare and align a public comparison candidate
 
 Never export directly over the tracked `public/comparisons/` bundle. Create a
 new, isolated candidate root instead. The alignment tool needs the Gallery
@@ -456,7 +500,7 @@ run only:
 python scripts/audit_comparison_alignment.py verify --gallery .
 ```
 
-### 7. Promote and validate, then hand off for hosting
+### 8. Promote and validate, then hand off for hosting
 
 Promotion is intentionally not an overwrite one-liner. Compare the complete
 candidate with the tracked bundle, promote it in a dedicated Git change while

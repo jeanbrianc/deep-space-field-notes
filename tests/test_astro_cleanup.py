@@ -83,6 +83,77 @@ class CleanupTests(unittest.TestCase):
             self.assertEqual(len(images), 1)
             self.assertIn("hand_processed", images[0].name)
 
+    def test_normal_finished_image_is_not_substituted_for_mosaic(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / "offline"
+            output = root / "gallery"
+            proc = root / "astro" / "M 31_sub" / "proc"
+            normal = source / "Stacked_100_M 31_10.0s_IRCUT_20250101-000000.jpg"
+            mosaic = source / "Stacked_61_mosaic_M 31_10.0s_IRCUT_20250102-000000.jpg"
+            finished = proc / "m31_stretched.png"
+            save_jpeg(normal, (30, 20, 25))
+            save_jpeg(mosaic, (60, 40, 45))
+            proc.mkdir(parents=True)
+            Image.new("RGB", (30, 30), (90, 70, 60)).save(finished)
+
+            result = astro_cleanup.main([
+                "--source", str(source), "--destination", str(output),
+                "--processed-root", str(root / "astro"), "--min-frames", "0",
+            ])
+
+            self.assertEqual(result, 0)
+            records = json.loads(
+                (output / "cleanup_manifest.json").read_text(encoding="utf-8")
+            )
+            records_by_source = {record["source"]: record for record in records}
+            self.assertEqual(
+                records_by_source[str(normal.resolve())]["provenance"],
+                "hand-processed",
+            )
+            self.assertEqual(
+                records_by_source[str(mosaic.resolve())]["provenance"],
+                "automatic-cleanup",
+            )
+            self.assertTrue((output / f"{normal.stem}_hand_processed.png").is_file())
+            self.assertTrue((output / f"{mosaic.stem}_cleaned.jpg").is_file())
+            self.assertFalse(
+                (output / f"{mosaic.stem}_hand_processed.png").exists()
+            )
+
+    def test_mosaic_uses_finished_image_from_mosaic_specific_proc_folder(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / "offline"
+            output = root / "gallery"
+            normal_proc = root / "astro" / "M 31_sub" / "proc"
+            mosaic_proc = root / "astro" / "M 31_mosaic_sub" / "proc"
+            mosaic = source / "Stacked_61_mosaic_M 31_10.0s_IRCUT_20250102-000000.jpg"
+            normal_finished = normal_proc / "m31_stretched.png"
+            mosaic_finished = mosaic_proc / "m31_mosaic_stretched.png"
+            save_jpeg(mosaic, (60, 40, 45))
+            normal_proc.mkdir(parents=True)
+            mosaic_proc.mkdir(parents=True)
+            Image.new("RGB", (30, 30), (200, 10, 10)).save(normal_finished)
+            Image.new("RGB", (40, 40), (10, 20, 200)).save(mosaic_finished)
+
+            result = astro_cleanup.main([
+                "--source", str(source), "--destination", str(output),
+                "--processed-root", str(root / "astro"), "--min-frames", "0",
+            ])
+
+            self.assertEqual(result, 0)
+            target = output / f"{mosaic.stem}_hand_processed.png"
+            self.assertEqual(target.read_bytes(), mosaic_finished.read_bytes())
+            records = json.loads(
+                (output / "cleanup_manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(len(records), 1)
+            self.assertEqual(records[0]["provenance"], "hand-processed")
+            self.assertEqual(
+                records[0]["preferred_source"], str(mosaic_finished.resolve())
+            )
+
     def test_collector_manifest_selects_only_the_new_current_winner(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
