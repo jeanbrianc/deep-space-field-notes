@@ -241,6 +241,34 @@ applying them, removing the public comparison controls, committing generated
 image changes, or publishing. Those are later, explicit steps after Brian says
 the review is complete.
 
+When Brian separately asks to apply the completed review, validate the entire
+choice file first:
+
+```bash
+python3 <gallery-root>/seestar_stack_compare.py apply-public \
+  --gallery <gallery-root> \
+  --choices <gallery-root>/work/public_display_choices.json \
+  --dry-run
+```
+
+Proceed only when the dry run reports one current decision for every tracked
+pair and zero undecided, stale, invalid, or orphaned choices. Then remove
+`--dry-run` and synchronize the app projection:
+
+```bash
+python3 <gallery-root>/seestar_stack_compare.py apply-public \
+  --gallery <gallery-root> \
+  --choices <gallery-root>/work/public_display_choices.json
+
+cd <gallery-root> && npm run comparisons:sync
+```
+
+This promotion updates only owner-curation metadata in the checked-in public
+comparison manifest. It must preserve both source treatments, image hashes,
+alignment evidence, comparison IDs, and the bundle creation time. Inspect and
+report the Gallery/NightSkyAI counts and the manifest diff before any commit or
+Sites release.
+
 ## 6. Choose one public image for repeated targets
 
 Keep target curation separate from the exact-session stack comparison above.
@@ -292,6 +320,9 @@ Report the removable source, discovered FITS count/bytes, eligible/completed/
 failed stack groups, matched/undecided comparisons, review URL, decisions file,
 and winner snapshot when exported. For the public treatment queue, report its
 manifest count and decided/undecided totals from `public_display_choices.json`.
+When a completed review is explicitly applied, also report the dry-run result,
+Gallery/NightSkyAI selection counts, and confirmation that comparison media was
+not rewritten.
 When culling repeated targets, also report the distinct culling choice file and
 decided/undecided groups. Call out low-frame
 targets, mosaics, conflicts, and unpaired images. If an optional offline archive

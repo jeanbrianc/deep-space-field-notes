@@ -72,6 +72,8 @@ def write_public_comparison_manifest(gallery: Path) -> Path:
                 "object": parsed.group("object"),
                 "exposure": compare.normalize_exposure(parsed.group("exposure")),
                 "filter": parsed.group("filter").upper(),
+                "curatedDefault": "seestar",
+                "curatedDefaultSource": "orientation-aligned-default",
                 "baseline": {
                     "filename": filename,
                     "frames": int(parsed.group("frames")),
@@ -106,6 +108,7 @@ def write_public_comparison_manifest(gallery: Path) -> Path:
                 "tool": compare.TOOL_NAME,
                 "createdAt": "2026-09-25T18:27:58Z",
                 "captureCount": len(captures),
+                "defaultedToSeestarCount": len(captures),
                 "captures": captures,
             }
         ),
@@ -1054,6 +1057,226 @@ class PublicComparisonReviewTests(unittest.TestCase):
             server.serve_forever.assert_called_once_with()
             server.server_close.assert_called_once_with()
             self.assertFalse(choices.exists())
+
+
+class ApplyPublicReviewTests(unittest.TestCase):
+    @staticmethod
+    def make_reviewed_gallery(
+        root: Path, choices_by_position: list[str]
+    ) -> tuple[Path, Path, Path, list[compare.ComparisonPair]]:
+        filenames = [
+            f"Stacked_{100 + position}_M {position}_10.0s_IRCUT_20260925-210000_cleaned.jpg"
+            for position in range(1, len(choices_by_position) + 1)
+        ]
+        gallery = make_gallery(root, filenames)
+        manifest = write_public_comparison_manifest(gallery)
+        pairs = compare.load_public_comparison_pairs(gallery)
+        choices_path = gallery / "work" / "public_display_choices.json"
+        for pair, choice in zip(pairs, choices_by_position, strict=True):
+            compare.record_public_review_choice(
+                choices_path,
+                {pair.pair_id: pair},
+                pair.pair_id,
+                choice,
+                pair.ours[0].candidate_id if choice == "ours" else None,
+            )
+        return gallery, manifest, choices_path, pairs
+
+    @staticmethod
+    def without_owner_curation(payload: dict[str, object]) -> dict[str, object]:
+        reduced = json.loads(json.dumps(payload))
+        reduced.pop("defaultedToSeestarCount", None)
+        reduced.pop("curation", None)
+        for capture in reduced["captures"]:
+            capture.pop("curatedDefault", None)
+            capture.pop("curatedDefaultSource", None)
+            capture.pop("curatedDefaultSelectedAt", None)
+            capture.pop("curatedDefaultReviewPairId", None)
+        return reduced
+
+    def test_apply_public_promotes_exact_15_13_mapping_and_dry_run_is_read_only(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            gallery, manifest, choices_path, pairs = self.make_reviewed_gallery(
+                Path(temporary), ["site"] * 15 + ["ours"] * 13
+            )
+            original_bytes = manifest.read_bytes()
+            original_payload = json.loads(original_bytes)
+            media_before = {
+                path.relative_to(gallery): path.read_bytes()
+                for path in (gallery / "public").rglob("*")
+                if path.is_file() and path.suffix.casefold() in {".jpg", ".jpeg", ".png"}
+            }
+
+            stdout = io.StringIO()
+            with (
+                mock.patch.object(compare, "utc_now", return_value="2026-09-26T02:00:00Z"),
+                contextlib.redirect_stdout(stdout),
+            ):
+                result = compare.main(
+                    [
+                        "apply-public",
+                        "--gallery",
+                        str(gallery),
+                        "--choices",
+                        str(choices_path),
+                        "--dry-run",
+                    ]
+                )
+            self.assertEqual(result, 0)
+            self.assertIn("15 Gallery, 13 NightSkyAI", stdout.getvalue())
+            self.assertIn("was not changed", stdout.getvalue())
+            self.assertEqual(manifest.read_bytes(), original_bytes)
+
+            with mock.patch.object(
+                compare, "utc_now", return_value="2026-09-26T02:01:00Z"
+            ):
+                summary = compare.apply_public_review_choices(
+                    gallery, choices_path, dry_run=False
+                )
+
+            applied = json.loads(manifest.read_text(encoding="utf-8"))
+            saved_choices = json.loads(choices_path.read_text(encoding="utf-8"))["choices"]
+            media_after = {
+                path.relative_to(gallery): path.read_bytes()
+                for path in (gallery / "public").rglob("*")
+                if path.is_file() and path.suffix.casefold() in {".jpg", ".jpeg", ".png"}
+            }
+            self.assertEqual(summary["decision_count"], 28)
+            self.assertEqual(summary["gallery_count"], 15)
+            self.assertEqual(summary["nightskyai_count"], 13)
+            self.assertEqual(
+                [capture["curatedDefault"] for capture in applied["captures"]],
+                ["seestar"] * 15 + ["nightskyai"] * 13,
+            )
+            self.assertEqual(applied["defaultedToSeestarCount"], 0)
+            self.assertEqual(
+                applied["curation"],
+                {
+                    "source": "owner-review",
+                    "tool": compare.PUBLIC_REVIEW_TOOL_NAME,
+                    "choicesSchemaVersion": 1,
+                    "choicesUpdatedAt": json.loads(
+                        choices_path.read_text(encoding="utf-8")
+                    )["updated_at"],
+                    "appliedAt": "2026-09-26T02:01:00Z",
+                    "decisionCount": 28,
+                    "galleryCount": 15,
+                    "nightSkyAICount": 13,
+                },
+            )
+            pairs_by_filename = {pair.site.filename: pair for pair in pairs}
+            for capture in applied["captures"]:
+                pair = pairs_by_filename[capture["baseline"]["filename"]]
+                self.assertEqual(capture["curatedDefaultSource"], "owner-review")
+                self.assertEqual(capture["curatedDefaultReviewPairId"], pair.pair_id)
+                self.assertEqual(
+                    capture["curatedDefaultSelectedAt"],
+                    saved_choices[pair.pair_id]["selected_at"],
+                )
+            self.assertEqual(applied["createdAt"], original_payload["createdAt"])
+            self.assertEqual(
+                self.without_owner_curation(applied),
+                self.without_owner_curation(original_payload),
+            )
+            self.assertEqual(media_after, media_before)
+            self.assertFalse(manifest.with_name(".manifest.json.tmp").exists())
+
+    def test_apply_public_rejects_incomplete_stale_and_orphaned_reviews_without_writing(self):
+        cases = (
+            (
+                "missing",
+                lambda payload, last_id: payload["choices"].pop(last_id),
+                "still undecided",
+            ),
+            (
+                "skip",
+                lambda payload, last_id: payload["choices"][last_id].__setitem__(
+                    "choice", "skip"
+                ),
+                "still undecided",
+            ),
+            (
+                "stale",
+                lambda payload, last_id: payload["choices"][last_id].__setitem__(
+                    "site_sha256", "0" * 64
+                ),
+                "stale saved choice",
+            ),
+            (
+                "orphan",
+                lambda payload, last_id: payload["choices"].__setitem__(
+                    "f" * 64, dict(payload["choices"][last_id])
+                ),
+                "do not belong",
+            ),
+        )
+        for case_name, mutate, expected_error in cases:
+            with self.subTest(case_name=case_name), tempfile.TemporaryDirectory() as temporary:
+                gallery, manifest, choices_path, pairs = self.make_reviewed_gallery(
+                    Path(temporary), ["site", "ours", "site"]
+                )
+                choices_payload = json.loads(choices_path.read_text(encoding="utf-8"))
+                mutate(choices_payload, pairs[-1].pair_id)
+                compare.write_json(choices_path, choices_payload)
+                manifest_before = manifest.read_bytes()
+                media_before = {
+                    path.relative_to(gallery): path.read_bytes()
+                    for path in (gallery / "public").rglob("*")
+                    if path.is_file()
+                    and path.suffix.casefold() in {".jpg", ".jpeg", ".png"}
+                }
+
+                with self.assertRaisesRegex(ValueError, expected_error):
+                    compare.apply_public_review_choices(
+                        gallery, choices_path, dry_run=False
+                    )
+
+                self.assertEqual(manifest.read_bytes(), manifest_before)
+                self.assertEqual(
+                    {
+                        path.relative_to(gallery): path.read_bytes()
+                        for path in (gallery / "public").rglob("*")
+                        if path.is_file()
+                        and path.suffix.casefold() in {".jpg", ".jpeg", ".png"}
+                    },
+                    media_before,
+                )
+                self.assertFalse(manifest.with_name(".manifest.json.tmp").exists())
+
+    def test_apply_public_confines_choices_to_real_gallery_work_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery, manifest, choices_path, _pairs = self.make_reviewed_gallery(
+                root, ["site"]
+            )
+            outside = root / "outside.json"
+            outside.write_bytes(choices_path.read_bytes())
+            linked = gallery / "work" / "linked.json"
+            linked.symlink_to(choices_path)
+            before = manifest.read_bytes()
+
+            with self.assertRaisesRegex(ValueError, "under the gallery work"):
+                compare.apply_public_review_choices(gallery, outside, dry_run=True)
+            with self.assertRaisesRegex(ValueError, "symbolic link"):
+                compare.apply_public_review_choices(gallery, linked, dry_run=True)
+            self.assertEqual(manifest.read_bytes(), before)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            gallery = make_gallery(
+                root,
+                ["Stacked_100_M 1_10.0s_IRCUT_20260925-210000_cleaned.jpg"],
+            )
+            write_public_comparison_manifest(gallery)
+            external_work = root / "external-work"
+            external_work.mkdir()
+            external_choices = external_work / "choices.json"
+            external_choices.write_text("{}", encoding="utf-8")
+            (gallery / "work").symlink_to(external_work, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "non-symlinked directory"):
+                compare.apply_public_review_choices(
+                    gallery, gallery / "work" / "choices.json", dry_run=True
+                )
 
 
 class ChoiceAndExportTests(unittest.TestCase):

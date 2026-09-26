@@ -2,8 +2,9 @@
 """Review current gallery images beside locally produced Siril stacks.
 
 The local server exposes only discovered images through opaque IDs, stores each
-human choice atomically, and exports winners into a new snapshot. It never
-overwrites the gallery or any stack output.
+human choice atomically, and exports winners into a new snapshot. A separate
+guarded command can apply a complete public review to manifest metadata; no
+command here overwrites gallery media or stack output.
 """
 
 from __future__ import annotations
@@ -31,6 +32,7 @@ TOOL_NAME = "seestar_stack_compare"
 CHOICES_SCHEMA_VERSION = 1
 PUBLIC_REVIEW_TOOL_NAME = "seestar_public_comparison_review"
 PUBLIC_REVIEW_CHOICES_SCHEMA_VERSION = 1
+PUBLIC_REVIEW_CURATION_SOURCE = "owner-review"
 CULL_TOOL_NAME = "seestar_gallery_cull"
 CULL_CHOICES_SCHEMA_VERSION = 1
 CULL_GROUPS_SCHEMA_VERSION = 1
@@ -1430,6 +1432,197 @@ def resolve_saved_choice(
     return "ours", candidate
 
 
+def _confined_public_review_choices_path(gallery: Path, requested: Path) -> Path:
+    """Resolve a real choices file beneath this checkout's non-symlinked work folder."""
+
+    work_path = gallery / "work"
+    if work_path.is_symlink() or not work_path.is_dir():
+        raise ValueError("gallery work/ must be an existing, non-symlinked directory")
+    work_root = work_path.resolve()
+    if not _is_relative_to(work_root, gallery):
+        raise ValueError("gallery work/ resolves outside the gallery")
+
+    raw_choices = requested.expanduser()
+    if raw_choices.is_symlink():
+        raise ValueError("public review choices may not be a symbolic link")
+    choices_path = raw_choices.resolve()
+    if choices_path.suffix.casefold() != ".json" or not _is_relative_to(
+        choices_path, work_root
+    ):
+        raise ValueError(
+            "public review choices must be a JSON file under the gallery work/ folder"
+        )
+    if not choices_path.is_file():
+        raise ValueError(f"public review choices file is missing: {choices_path}")
+    return choices_path
+
+
+def _public_manifest_for_owner_review(gallery: Path) -> Path:
+    public_root = gallery / "public"
+    comparison_root = public_root / "comparisons"
+    manifest_path = comparison_root / "manifest.json"
+    for directory, label in (
+        (public_root, "public/"),
+        (comparison_root, "public/comparisons/"),
+    ):
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValueError(f"{label} must be an existing, non-symlinked directory")
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise ValueError("public comparison manifest must be an existing, non-symlinked file")
+    if not _is_relative_to(manifest_path.resolve(), gallery):
+        raise ValueError("public comparison manifest resolves outside the gallery")
+    return manifest_path
+
+
+def _replace_json_atomically(
+    path: Path, payload: dict[str, object], expected_bytes: bytes
+) -> None:
+    """Replace an existing JSON file only if it is still the version we validated."""
+
+    temporary = path.with_name(f".{path.name}.tmp")
+    if temporary.exists() or temporary.is_symlink():
+        raise ValueError(f"public manifest staging file already exists: {temporary}")
+    if path.is_symlink() or path.read_bytes() != expected_bytes:
+        raise ValueError("public comparison manifest changed while choices were validated")
+    try:
+        with temporary.open("x", encoding="utf-8") as file_handle:
+            json.dump(payload, file_handle, indent=2, sort_keys=True)
+            file_handle.write("\n")
+        if path.is_symlink() or path.read_bytes() != expected_bytes:
+            raise ValueError("public comparison manifest changed while choices were validated")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def apply_public_review_choices(
+    gallery: Path, choices_path: Path, *, dry_run: bool
+) -> dict[str, object]:
+    """Promote one complete owner-reviewed decision set into the public manifest.
+
+    Media, image hashes, comparison IDs, alignment evidence, and the comparison
+    bundle's creation timestamp are intentionally left unchanged. The ignored
+    local choice records are reduced to portable, non-path provenance fields.
+    """
+
+    resolved_gallery = gallery.expanduser().resolve()
+    confined_choices = _confined_public_review_choices_path(
+        resolved_gallery, choices_path
+    )
+    manifest_path = _public_manifest_for_owner_review(resolved_gallery)
+    original_manifest = manifest_path.read_bytes()
+    original_choices = confined_choices.read_bytes()
+
+    try:
+        manifest_payload = json.loads(original_manifest)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"could not read public comparison manifest {manifest_path}: {exc}") from exc
+    if not isinstance(manifest_payload, dict):
+        raise ValueError("public comparison manifest root must be an object")
+
+    pairs = load_public_comparison_pairs(resolved_gallery)
+    verify_public_comparison_pairs(pairs)
+    choices_payload = load_public_review_choices(confined_choices)
+    if confined_choices.read_bytes() != original_choices:
+        raise ValueError("public review choices changed while they were validated")
+    choices = choices_payload["choices"]
+    assert isinstance(choices, dict)
+
+    current_pair_ids = {pair.pair_id for pair in pairs}
+    orphan_choice_ids = sorted(set(choices) - current_pair_ids)
+    if orphan_choice_ids:
+        raise ValueError(
+            f"{len(orphan_choice_ids)} public review choice(s) do not belong to "
+            "the current comparison manifest"
+        )
+
+    resolved: dict[str, tuple[str, LocalStack | None, dict[str, object]]] = {}
+    incomplete: list[str] = []
+    for pair in pairs:
+        raw_choice = choices.get(pair.pair_id)
+        status, candidate = resolve_saved_choice(pair, raw_choice)
+        if status not in {"site", "ours"}:
+            incomplete.append(pair.target)
+            continue
+        assert isinstance(raw_choice, dict)
+        resolved[pair.pair_id] = (status, candidate, raw_choice)
+    if incomplete:
+        raise ValueError(
+            f"{len(incomplete)} public comparison(s) are still undecided: "
+            + ", ".join(incomplete)
+        )
+    if len(choices) != len(pairs):
+        raise ValueError("public review choices must contain exactly one current decision per pair")
+
+    choices_updated_at = choices_payload.get("updated_at")
+    if not isinstance(choices_updated_at, str) or not choices_updated_at:
+        raise ValueError("public review choices updated_at is missing")
+
+    captures = manifest_payload.get("captures")
+    if not isinstance(captures, list) or len(captures) != len(pairs):
+        raise ValueError("public comparison manifest captures changed during review")
+    pairs_by_baseline = {pair.site.filename: pair for pair in pairs}
+    if len(pairs_by_baseline) != len(pairs):
+        raise ValueError("public comparison baselines are not unique")
+
+    gallery_count = 0
+    nightskyai_count = 0
+    for position, capture in enumerate(captures, start=1):
+        if not isinstance(capture, dict):
+            raise ValueError(f"public comparison capture {position} must be an object")
+        baseline = capture.get("baseline")
+        if not isinstance(baseline, dict):
+            raise ValueError(f"public comparison capture {position}.baseline must be an object")
+        pair = pairs_by_baseline.get(str(baseline.get("filename", "")))
+        if pair is None:
+            raise ValueError(
+                f"public comparison capture {position} no longer matches its reviewed pair"
+            )
+        status, _candidate, raw_choice = resolved[pair.pair_id]
+        selected_at = raw_choice.get("selected_at")
+        if not isinstance(selected_at, str) or not selected_at:
+            raise ValueError(f"owner-review timestamp is missing for {pair.target}")
+        if status == "site":
+            curated_default = "seestar"
+            gallery_count += 1
+        else:
+            curated_default = "nightskyai"
+            nightskyai_count += 1
+        capture["curatedDefault"] = curated_default
+        capture["curatedDefaultSource"] = PUBLIC_REVIEW_CURATION_SOURCE
+        capture["curatedDefaultSelectedAt"] = selected_at
+        capture["curatedDefaultReviewPairId"] = pair.pair_id
+
+    applied_at = utc_now()
+    manifest_payload["defaultedToSeestarCount"] = 0
+    manifest_payload["curation"] = {
+        "source": PUBLIC_REVIEW_CURATION_SOURCE,
+        "tool": PUBLIC_REVIEW_TOOL_NAME,
+        "choicesSchemaVersion": PUBLIC_REVIEW_CHOICES_SCHEMA_VERSION,
+        "choicesUpdatedAt": choices_updated_at,
+        "appliedAt": applied_at,
+        "decisionCount": len(pairs),
+        "galleryCount": gallery_count,
+        "nightSkyAICount": nightskyai_count,
+    }
+
+    if confined_choices.read_bytes() != original_choices:
+        raise ValueError("public review choices changed while they were validated")
+    if manifest_path.read_bytes() != original_manifest:
+        raise ValueError("public comparison manifest changed while choices were validated")
+    if not dry_run:
+        _replace_json_atomically(manifest_path, manifest_payload, original_manifest)
+
+    return {
+        "manifest": manifest_path,
+        "dry_run": dry_run,
+        "decision_count": len(pairs),
+        "gallery_count": gallery_count,
+        "nightskyai_count": nightskyai_count,
+        "applied_at": applied_at,
+    }
+
+
 def pair_to_api(pair: ComparisonPair, choice: object) -> dict[str, object]:
     return {
         "pair_id": pair.pair_id,
@@ -1880,6 +2073,30 @@ def command_review_public(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_apply_public(args: argparse.Namespace) -> int:
+    try:
+        result = apply_public_review_choices(
+            args.gallery,
+            args.choices,
+            dry_run=args.dry_run,
+        )
+    except (OSError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+
+    action = "validated" if args.dry_run else "applied"
+    print(
+        f"Public display choices {action}: {result['decision_count']} decisions "
+        f"({result['gallery_count']} Gallery, "
+        f"{result['nightskyai_count']} NightSkyAI)."
+    )
+    if args.dry_run:
+        print("Dry run complete; the public comparison manifest was not changed.")
+    else:
+        print(f"Manifest updated: {result['manifest']}")
+    return 0
+
+
 def command_cull(args: argparse.Namespace) -> int:
     gallery = args.gallery.expanduser().resolve()
     groups_path = args.groups.expanduser().resolve()
@@ -2323,6 +2540,26 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--open", action="store_true", help="Open the review page in the default browser."
     )
     public_review.set_defaults(func=command_review_public)
+
+    apply_public = subparsers.add_parser(
+        "apply-public",
+        help="Apply one complete public display review to the comparison manifest.",
+    )
+    apply_public.add_argument(
+        "--gallery", required=True, type=Path, help="Deep Space Field Notes site repository."
+    )
+    apply_public.add_argument(
+        "--choices",
+        required=True,
+        type=Path,
+        help="Completed public review JSON file under the gallery work/ folder.",
+    )
+    apply_public.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate and summarize every choice without changing the manifest.",
+    )
+    apply_public.set_defaults(func=command_apply_public)
 
     cull = subparsers.add_parser(
         "cull", help="Launch the local chooser for configured duplicate gallery captures."

@@ -23,7 +23,7 @@ the Gallery edit as the immutable alignment reference for public comparisons.
 | --- | --- | --- |
 | Make the best existing Seestar JPEGs available offline | Collect, then clean | A small offline set and a cleanup manifest |
 | Rebuild targets from the original light frames | Stack, then review | Reproducible Siril stacks and human choices |
-| Choose which treatment each tracked comparison should display | Review all tracked public pairs | 28 local display decisions; no site changes |
+| Choose which treatment each tracked comparison should display | Review all tracked public pairs, then apply the complete decision set | One owner-selected treatment for each of 28 tracked observations |
 | Choose one public photo when a target was captured twice | Cull repeated targets | One personal winner per configured object |
 | Prepare a fair Seestar/NightSkyAI comparison | Export a release candidate, then align | Both treatments show the same sky orientation and framing |
 | Update the public experience | Promote the reviewed candidate, validate, then publish | A tested, versioned site release |
@@ -215,13 +215,32 @@ reviewed Gallery change, and publishing requires another explicit request.
 Use a final request such as:
 
 > Promote the reviewed candidate in a dedicated change, synchronize the site
-> data, run the Python and site validations, show me the diff, and publish with
-> Sites. Do not cast a real public vote during QA.
+> data, apply my complete 28-image display review, run the Python and site
+> validations, show me the diff, and publish with Sites.
 
 Publishing is a separate release operation. A successful local pipeline does
 not silently replace `public/comparisons/` or deploy the website. The promotion
 should preserve Git history, include the audit evidence, and be reviewed in the
 diff before the public version is created.
+
+The display-choice promotion first validates the full decision set without
+writing, then updates only comparison-manifest curation metadata:
+
+```bash
+python seestar_stack_compare.py apply-public \
+  --gallery . \
+  --choices work/public_display_choices.json \
+  --dry-run
+
+python seestar_stack_compare.py apply-public \
+  --gallery . \
+  --choices work/public_display_choices.json
+
+npm run comparisons:sync
+```
+
+`apply-public` refuses missing, skipped, stale, invalid, or orphaned decisions.
+It does not rewrite either treatment image or the alignment evidence.
 
 ## Route B: process and validate entirely from the terminal
 
@@ -584,11 +603,33 @@ That read-only comparison normally exits with status `1` when it finds
 differences; in this case, that means there is a candidate change to review,
 not that either directory was modified.
 
-After the reviewed candidate has been promoted into
-`public/comparisons/`, synchronize the app projection and validate everything:
+After any reviewed comparison candidate has been promoted into
+`public/comparisons/`, validate and apply the complete owner choice file, then
+synchronize the app projection:
 
 ```bash
+python seestar_stack_compare.py apply-public \
+  --gallery . \
+  --choices "$WORK_ROOT/public_display_choices.json" \
+  --dry-run
+
+python seestar_stack_compare.py apply-public \
+  --gallery . \
+  --choices "$WORK_ROOT/public_display_choices.json"
+
 npm run comparisons:sync
+```
+
+The choices path must be a real JSON file under this checkout's `work/`
+directory. The command requires exactly one current, non-stale Gallery or
+NightSkyAI decision per tracked pair and changes only curation metadata in the
+manifest. It records the selected source, review pair ID, and selection time;
+the image files, hashes, alignment evidence, and bundle creation time remain
+unchanged.
+
+Then validate everything:
+
+```bash
 python -m unittest discover -v
 python scripts/audit_comparison_alignment.py self-test
 python scripts/audit_comparison_alignment.py verify --gallery .
@@ -602,7 +643,7 @@ Review at least these files before committing:
 - `public/comparisons/manifest.json`
 - `public/comparisons/alignment-audit.json`
 - `app/comparisons.generated.json`
-- the new original and aligned comparison images
+- any new original and aligned comparison images
 
 There is no supported Sites deployment command in this repository. The
 terminal-only workflow therefore ends at the tested Git revision. Publishing
@@ -610,9 +651,8 @@ with Sites happens only after that validation succeeds, using the Sites skill
 or Sites product workflow. Keep the release public if that is the site's
 intended access level, deploy the exact reviewed Git revision, and open the
 deployed URL for a read-only smoke test.
-Navigate, blink between treatments, and check mobile/desktop layout, but **do
-not cast a real public vote during QA**. A vote changes production data and is
-not a harmless rendering check.
+Navigate through several owner-selected observations and check the entrance,
+keyboard controls, mobile swipe behavior, and desktop layout.
 
 ## Recovery and decision points
 

@@ -21,9 +21,12 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Explains what the viewer is seeing in approachable field notes.
 - Preserves useful observing context, including frame count, exposure, filter, date, and processing method.
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
-- Lets visitors blink between the selected gallery edit and our NightSkyAI
-  restack in the same viewport, then vote for the treatment they prefer.
-- Uses a cinematic Northern Michigan observatory setting to keep the viewer grounded beneath the same sky where the images were captured.
+- Opens with a scrollable walk into a Northern Michigan observing night before
+  the first field note appears.
+- Shows one owner-selected final treatment per observation, chosen from the
+  Gallery edit and the aligned NightSkyAI restack when both exist.
+- Uses a cinematic observatory setting to keep the viewer grounded beneath the
+  same sky where the images were captured.
 
 The current collection includes **33 observations** spanning galaxies, nebulae, supernova remnants, and globular clusters.
 
@@ -43,8 +46,8 @@ The collection follows a deliberate curation path:
 8. Match the NightSkyAI star field to the Gallery edit's orientation and crop,
    without changing the Gallery reference or overwriting the full-field source.
 9. Review all 28 tracked, aligned Gallery edit/NightSkyAI pairs locally and
-   record which treatment should ultimately be displayed; applying those
-   choices and publishing the site remain separate, explicit steps.
+   record which treatment should ultimately be displayed, then promote the
+   complete decision set into the public manifest as a separate guarded step.
 10. Add catalog coordinates, capture metadata, and an accessible astronomical field note.
 
 The result is not intended to compete with professional observatory imagery. It is a living record of what a small smart telescope can reveal from a backyard in Northern Michigan—and a more inviting way to share that record with other people.
@@ -64,15 +67,20 @@ comparison manifest and records final display choices locally; and `cull`
 contains only the three configured duplicate-target groups. None of those
 review screens applies a display choice or publishes the site on its own.
 
-## The open processing experiment
+## Owner-curated processing
 
-For 28 observations, visitors can switch instantly between two finished
-interpretations: the gallery's existing Seestar or hand-finished edit and a
-fresh stack produced by our repeatable command-line pipeline, NightSkyAI.
+For 28 observations, the archive retains two finished interpretations: the
+Gallery's existing Seestar or hand-finished edit and a fresh stack produced by
+our repeatable command-line pipeline, NightSkyAI. Brian reviews every aligned
+pair in a private local desk and chooses the one final treatment shown in the
+public journal. The current release contains 15 Gallery selections and 13
+NightSkyAI selections; visitors see the authored result rather than a toggle or
+poll.
+
 NightSkyAI can combine more accepted frames across multiple observing nights,
-so this is an honest comparison of complete results rather than a controlled
-same-light processing test. The interface shows its observation span and night
-count whenever that version is active.
+so each review compares complete results rather than claiming to be a
+controlled same-light processing test. When a NightSkyAI treatment is selected,
+the public field note reports its combined frame count and observation span.
 
 Before publication, a deterministic star-pattern audit detects rotation,
 reflection, scale, and framing differences in every pair. The Gallery edit is
@@ -83,24 +91,15 @@ that were not present in the NightSkyAI source. The original 1080 × 1920
 NightSkyAI export remains unchanged alongside the derivative, and the audit
 records hashes, the fitted transform, matched-star evidence, and a second-pass
 verification result. Newly aligned comparisons default to the Gallery edit
-until they are reviewed again. Neither version is hidden. Seeing both in the same frame makes
-differences in field coverage, color, contrast, noise, and detail much easier
-to judge than a side-by-side desktop layout.
+until they are reviewed again. Both source treatments and their provenance stay
+in the versioned comparison bundle even though the public journal displays only
+the selected treatment.
 
 The owner can separately open all 28 tracked pairs in the local
 `review-public` desk and choose which treatment should eventually represent
 each observation. That desk writes only an ignored local decision file; a
 reviewed change must apply the completed choices, and public deployment must
 still be requested separately.
-
-After comparing, a visitor can cast one anonymous browser vote per observation.
-The browser receives a random private identifier; only its one-way hash is
-stored, and the choice can be changed later. Aggregate results appear only
-after that browser votes, reducing the temptation to follow the crowd. The
-counts represent browsers, not verified people. This is an informal public
-poll, not a scientific image-quality benchmark. A comparison ID incorporates
-both image hashes, so changing either treatment starts a fresh fair poll while
-retaining the older rows as historical data.
 
 ## Honest sky travel
 
@@ -146,10 +145,11 @@ aligned manifest as if its derivative were fresh source material.
 ## Project map
 
 - `app/page.tsx` contains the curated observation catalog and gallery experience.
-- `app/comparisons.ts` binds stable captures to hash-versioned comparison IDs,
-  preventing votes on obsolete pixels from leaking into a new comparison.
+- `app/comparisons.ts` binds stable captures to the selected treatment and its
+  hash-versioned comparison provenance.
 - `app/comparisons.generated.json` is the build-safe projection of the public comparison manifest; refresh it with `npm run comparisons:sync` after exporting new comparisons.
-- `app/api/votes/` stores changeable anonymous votes and returns aggregates.
+- `app/api/votes/` and the small database schema retain the earlier comparison
+  experiment's historical endpoint; the current public journal does not call it.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
 - `public/images/` contains the selected processed captures.
 - `public/comparisons/` contains the immutable NightSkyAI comparison export and provenance manifest.
@@ -157,11 +157,11 @@ aligned manifest as if its derivative were fresh source material.
   review queue; `review_candidates/` holds local-review-only comparison
   candidates that are never served by the public site.
 - `seestar_stack_compare.py` provides separate `serve`, `review-public`, and
-  `cull` queues for raw-stack review, the 28 tracked display decisions, and the
-  three duplicate-target decisions respectively.
+  `cull` queues plus the guarded `apply-public` promotion for a complete set of
+  28 tracked display decisions.
 - `scripts/audit_comparison_alignment.py` performs the deterministic,
   fail-closed star-field audit and produces verified aligned derivatives.
-- `db/schema.ts` and `drizzle/` define the small vote database.
+- `db/schema.ts` and `drizzle/` define the retained historical vote database.
 - `tests/` checks the collection, interactions, descriptions, and required media.
 
 ## Photography

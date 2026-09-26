@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { comparisons, type CaptureComparison, type VoteChoice } from "./comparisons";
+import { comparisons, type CaptureComparison } from "./comparisons";
 
 const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
@@ -173,21 +173,6 @@ const captures = imageFiles.map(parseCapture).sort((a, b) => a.title.localeCompa
 
 type Phase = "focused" | "pullback" | "traveling" | "arriving";
 
-type VoteSnapshot = {
-  comparisonId: string;
-  seestar: number;
-  nightskyai: number;
-  total: number;
-  choice: VoteChoice | null;
-};
-
-type VoteUiState = {
-  comparisonId: string;
-  snapshot: VoteSnapshot | null;
-  busy: boolean;
-  error: string;
-};
-
 function publicImageUrl(path: string) {
   return path.startsWith("/") ? path : `/images/${encodeURIComponent(path)}`;
 }
@@ -244,33 +229,24 @@ export default function Home() {
   const [originIndex, setOriginIndex] = useState(initial);
   const [targetIndex, setTargetIndex] = useState(initial);
   const [phase, setPhase] = useState<Phase>("focused");
+  const [entryStep, setEntryStep] = useState(0);
+  const [galleryInView, setGalleryInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [variantOverride, setVariantOverride] = useState<{ captureId: string; choice: VoteChoice } | null>(null);
-  const [voteState, setVoteState] = useState<VoteUiState | null>(null);
-  const touchX = useRef<number | null>(null);
+  const entryBeatRefs = useRef<Array<HTMLElement | null>>([]);
+  const galleryRef = useRef<HTMLElement | null>(null);
+  const touchPoint = useRef<{ x: number; y: number } | null>(null);
   const capture = captures[index];
   const origin = captures[originIndex];
   const target = captures[targetIndex];
   const comparison = capture.comparison;
-  const variant = comparison && variantOverride?.captureId === comparison.captureId
-    ? variantOverride.choice
-    : comparison?.curatedDefault ?? "seestar";
-  const vote = comparison && voteState?.comparisonId === comparison.comparisonId ? voteState.snapshot : null;
-  const voteReady = Boolean(comparison && voteState?.comparisonId === comparison.comparisonId);
-  const voteBusy = comparison && voteState?.comparisonId === comparison.comparisonId ? voteState.busy : false;
-  const voteError = comparison && voteState?.comparisonId === comparison.comparisonId ? voteState.error : "";
-
-  const selectVariant = (choice: VoteChoice) => {
-    if (comparison) setVariantOverride({ captureId: comparison.captureId, choice });
-  };
-
-  const activeImage = comparison && variant === "nightskyai" ? comparison.nightskyaiImage : comparison?.seestarImage ?? capture.file;
-  const activeFrames = comparison && variant === "nightskyai" ? comparison.nightskyaiFrames : capture.frames;
-  const activeProvenance = comparison && variant === "nightskyai"
+  const isNightSkyAI = comparison?.curatedDefault === "nightskyai";
+  const activeImage = curatedImage(capture);
+  const activeFrames = comparison && isNightSkyAI ? comparison.nightskyaiFrames : capture.frames;
+  const activeProvenance = comparison && isNightSkyAI
     ? (comparison.isGalleryAligned ? "NightSkyAI · aligned to Gallery" : "NightSkyAI restack")
     : capture.provenance;
-  // Keep the viewing window fixed while blinking between treatments so the
-  // comparison does not resize or jump beneath the visitor's gaze.
+  // Gallery-aligned NightSkyAI winners share the reference dimensions, so the
+  // viewing window remains stable without exposing a public treatment switch.
   const activeRatio = capture.imageRatio;
 
   const move = useCallback((delta: number) => {
@@ -310,68 +286,54 @@ export default function Home() {
   useEffect(() => {
     const warm = [captures[(index + 1) % captures.length], captures[(index - 1 + captures.length) % captures.length]];
     warm.forEach((item) => { const image = new Image(); image.src = publicImageUrl(curatedImage(item)); });
-    if (comparison) {
-      const alternate = new Image();
-      alternate.src = publicImageUrl(variant === "seestar" ? comparison.nightskyaiImage : comparison.seestarImage);
-    }
-  }, [comparison, index, variant]);
+  }, [index]);
 
   useEffect(() => {
-    if (!comparison) return;
+    if (!("IntersectionObserver" in window)) return;
+    const beats = entryBeatRefs.current.filter((beat): beat is HTMLElement => beat !== null);
+    const observer = new IntersectionObserver((entries) => {
+      const active = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!active) return;
+      const step = Number((active.target as HTMLElement).dataset.entryStep);
+      if (Number.isInteger(step)) setEntryStep(step);
+    }, { rootMargin: "-22% 0px -42%", threshold: [0.15, 0.35, 0.6] });
+    beats.forEach((beat) => observer.observe(beat));
+    return () => observer.disconnect();
+  }, []);
 
-    const controller = new AbortController();
-    const comparisonId = comparison.comparisonId;
-    fetch(`/api/votes?comparisonId=${encodeURIComponent(comparison.comparisonId)}`, { signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Votes are temporarily unavailable.");
-        return response.json() as Promise<VoteSnapshot>;
-      })
-      .then((snapshot) => setVoteState({ comparisonId, snapshot, busy: false, error: "" }))
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setVoteState({ comparisonId, snapshot: null, busy: false, error: "Votes are temporarily unavailable." });
-      });
-
-    return () => controller.abort();
-  }, [comparison]);
-
-  const submitVote = async (choice: VoteChoice) => {
-    if (!comparison || !voteReady || voteBusy) return;
-    const comparisonId = comparison.comparisonId;
-    selectVariant(choice);
-    setVoteState((current) => ({
-      comparisonId,
-      snapshot: current?.comparisonId === comparisonId ? current.snapshot : null,
-      busy: true,
-      error: "",
-    }));
-    try {
-      const response = await fetch("/api/votes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comparisonId: comparison.comparisonId, choice }),
-      });
-      if (!response.ok) throw new Error("Vote failed");
-      setVoteState({ comparisonId, snapshot: await response.json() as VoteSnapshot, busy: false, error: "" });
-    } catch {
-      setVoteState((current) => ({
-        comparisonId,
-        snapshot: current?.comparisonId === comparisonId ? current.snapshot : null,
-        busy: false,
-        error: "Your vote did not save. Please try again.",
-      }));
+  useEffect(() => {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+    if (!("IntersectionObserver" in window)) {
+      const updateFromPosition = () => {
+        const bounds = gallery.getBoundingClientRect();
+        setGalleryInView(bounds.bottom > 0 && bounds.top < window.innerHeight);
+      };
+      const frame = window.requestAnimationFrame(updateFromPosition);
+      window.addEventListener("scroll", updateFromPosition, { passive: true });
+      return () => {
+        window.cancelAnimationFrame(frame);
+        window.removeEventListener("scroll", updateFromPosition);
+      };
     }
-  };
+    const observer = new IntersectionObserver(([entry]) => {
+      setGalleryInView(entry.isIntersecting);
+    }, { threshold: 0.08 });
+    observer.observe(gallery);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.repeat) return;
+      if (event.repeat || !galleryInView) return;
       if (event.key === "ArrowLeft") move(-1);
       if (event.key === "ArrowRight") move(1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [move]);
+  }, [galleryInView, move]);
 
   const progress = useMemo(() => `${String(index + 1).padStart(2, "0")} / ${String(captures.length).padStart(2, "0")}`, [index]);
   const fromPoint = skyPoint(origin);
@@ -390,99 +352,147 @@ export default function Home() {
         : `Viewing ${capture.title}`;
 
   return (
-    <main className="gallery-shell" onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }} onTouchEnd={(e) => {
-      if (touchX.current === null) return;
-      const distance = e.changedTouches[0].clientX - touchX.current;
-      if (Math.abs(distance) > 55) move(distance > 0 ? -1 : 1);
-      touchX.current = null;
-    }}>
-      <header className="site-header">
-        <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
-        <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
-      </header>
+    <main className="site-shell">
+      <a className="skip-link" href="#field-notes">Skip introduction</a>
 
-      <section className={`portal-stage phase-${phase}`} style={skyStyle} aria-busy={phase !== "focused"}>
-        <div className="sky-dome" aria-hidden="true">
-          <div className="sky-grid" />
-          <div className="sky-origin" style={{ left: `${fromPoint.x}%`, top: `${fromPoint.y}%` }}><i /><span>{origin.object}</span></div>
-          <div className="sky-destination" style={{ left: `${toPoint.x}%`, top: `${toPoint.y}%` }}><i /><span>{target.object}</span></div>
-          <div className="sky-reticle"><i /></div>
-          <div className="ground-location"><span>You are here</span><strong>Northern Michigan</strong><small>45.1° N · Celestial atlas projection</small></div>
+      <section className={`observatory-entry entry-step-${entryStep}`} aria-labelledby="entry-title">
+        <div className="entry-scene" aria-hidden="true">
+          <div className="entry-sky" />
+          <div className="entry-grid" />
+          <div className="entry-aperture"><i /></div>
+          <div className="entry-masthead">
+            <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
+            <span>Northern Michigan Observatory Journal</span>
+          </div>
+          <ol className="entry-ledger">
+            <li><i />01 · Place</li>
+            <li><i />02 · Light</li>
+            <li><i />03 · Field notes</li>
+          </ol>
         </div>
 
-        <div className="journey-status" role="status" aria-live="polite">
-          <span>{phase === "focused" ? "Telescope locked" : phase === "traveling" ? "Slewing across the sky" : "Changing field of view"}</span>
-          <strong>{journeyLabel}</strong>
-        </div>
-
-        <figure className="capture-frame" key={`${capture.file}-${phase}`}>
-          <img src={publicImageUrl(activeImage)} alt={`${capture.title}, ${variant === "nightskyai" ? "NightSkyAI restack" : "gallery edit"}`} />
-          {comparison && (
-            <div className="processing-switch" role="group" aria-label="Choose processing view">
-              <span>Processing view</span>
-              <div>
-                <button type="button" aria-pressed={variant === "seestar"} onClick={() => selectVariant("seestar")}>Gallery edit</button>
-                <button type="button" aria-pressed={variant === "nightskyai"} onClick={() => selectVariant("nightskyai")}>NightSkyAI</button>
-              </div>
+        <div className="entry-story">
+          <section
+            className="entry-beat entry-beat-opening"
+            data-entry-step="0"
+            ref={(node) => { entryBeatRefs.current[0] = node; }}
+          >
+            <div className="entry-copy">
+              <p className="entry-kicker">Northern Michigan · 45.1° N</p>
+              <h1 id="entry-title">A small telescope under a very large sky.</h1>
+              <p>Deep Space Field Notes is a personal observatory journal of nebulae, galaxies, and star clusters captured from Northern Michigan. Every image began here, outside, beneath this horizon.</p>
+              <span className="entry-scroll-cue" aria-hidden="true"><i />Walk toward the telescope</span>
             </div>
-          )}
-          <span className="photo-watermark" aria-hidden="true"><b>Deep Space Field Notes</b><small>© Brian Jean</small></span>
-          <figcaption>
-            <span className="catalog-line"><i />{capture.object}</span>
-          </figcaption>
-        </figure>
+          </section>
 
-        <aside className="observation-rail">
-          <article className="telemetry">
-            <p className="eyebrow">Observation · {capture.object}</p>
-            <h1>{capture.title}</h1>
-            <p className="provenance">{activeProvenance}</p>
-            <dl>
-              <div><dt>Constellation</dt><dd>{capture.constellation}</dd></div>
-              <div><dt>Apparent position · J2000</dt><dd>{formatRa(capture.raDeg)} · {formatDec(capture.decDeg)}</dd></div>
-              <div><dt>Frames</dt><dd>{activeFrames} × {capture.exposure}</dd></div>
-              <div>
-                <dt>{comparison && variant === "nightskyai" ? "Observation span" : "Captured"}</dt>
-                <dd>{comparison && variant === "nightskyai" ? formatObservationSpan(comparison) : capture.date}</dd>
-              </div>
-            </dl>
-          </article>
-          <article className="field-note">
-            <p className="eyebrow">Field Note · {capture.object}</p>
-            <p className="fact">{capture.fact}</p>
-            <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
-            {comparison && (
-              <section className="vote-panel" aria-label="Informal browser poll">
-                <p className="vote-question">Which treatment earns the sky?</p>
-                <p className="vote-intro">The Gallery edit is the alignment reference. NightSkyAI is star-field registered to that orientation and crop; black borders mark sky the captures do not share. It may combine more frames across multiple nights, so this is not a controlled same-light test.</p>
-                <div className="vote-options">
-                  <button type="button" aria-pressed={vote?.choice === "seestar"} disabled={!voteReady || voteBusy} onClick={() => submitVote("seestar")}>Gallery edit</button>
-                  <button type="button" aria-pressed={vote?.choice === "nightskyai"} disabled={!voteReady || voteBusy} onClick={() => submitVote("nightskyai")}>NightSkyAI</button>
-                </div>
-                {vote?.choice && (
-                  <div className="vote-results" aria-live="polite">
-                    <div><span>Gallery edit</span><i><b style={{ width: `${vote.total ? (vote.seestar / vote.total) * 100 : 0}%` }} /></i><strong>{vote.seestar}</strong></div>
-                    <div><span>NightSkyAI</span><i><b style={{ width: `${vote.total ? (vote.nightskyai / vote.total) * 100 : 0}%` }} /></i><strong>{vote.nightskyai}</strong></div>
-                  </div>
-                )}
-                {voteError && <p className="vote-error" role="status">{voteError}</p>}
-                <p className="vote-privacy">Informal browser poll · counts are browsers, not verified people · change your choice anytime</p>
-              </section>
-            )}
-            <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
-          </article>
-        </aside>
+          <section
+            className="entry-beat entry-beat-process"
+            data-entry-step="1"
+            ref={(node) => { entryBeatRefs.current[1] = node; }}
+          >
+            <div className="entry-copy">
+              <p className="entry-kicker">50+ frames · every published field</p>
+              <h2>Faint light, gathered patiently.</h2>
+              <p>One short exposure holds more noise than wonder. Aligning and stacking dozens—or hundreds—of frames lets the real signal accumulate: dust lanes, stellar nurseries, and the soft edges of distant galaxies.</p>
+            </div>
+          </section>
+
+          <section
+            className="entry-beat entry-beat-invitation"
+            data-entry-step="2"
+            ref={(node) => { entryBeatRefs.current[2] = node; }}
+          >
+            <div className="entry-copy">
+              <p className="entry-kicker">{captures.length} selected observations</p>
+              <h2>Cross the sky one field note at a time.</h2>
+              <p>Each stop pairs the personally selected final image with its constellation, capture details, and a concise story about the light in the frame. Use the controls, arrow keys, or a swipe to travel.</p>
+              <a className="entry-cta" href="#field-notes">Enter the observatory <span aria-hidden="true">↓</span></a>
+            </div>
+          </section>
+        </div>
       </section>
 
-      <nav className="capture-nav" aria-label="Browse captures">
-        <button onClick={() => move(-1)} aria-label="Previous capture" disabled={phase !== "focused"}><span>←</span> Previous sky field</button>
-        <div className="progress-wrap">
-          <span>{progress}</span>
-          <div className="progress-track"><i style={{ width: `${((index + 1) / captures.length) * 100}%` }} /></div>
-        </div>
-        <button onClick={() => move(1)} aria-label="Next capture" disabled={phase !== "focused"}>Next sky field <span>→</span></button>
-      </nav>
-      <p className="hint">Use arrow keys or swipe to travel the collection</p>
+      <section
+        id="field-notes"
+        ref={galleryRef}
+        tabIndex={-1}
+        className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}`}
+        onTouchStart={(event) => {
+          touchPoint.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = touchPoint.current;
+          touchPoint.current = null;
+          if (!start) return;
+          const distanceX = event.changedTouches[0].clientX - start.x;
+          const distanceY = event.changedTouches[0].clientY - start.y;
+          if (Math.abs(distanceX) > 55 && Math.abs(distanceX) > Math.abs(distanceY) * 1.2) {
+            move(distanceX > 0 ? -1 : 1);
+          }
+        }}
+        onTouchCancel={() => { touchPoint.current = null; }}
+      >
+        <header className="site-header">
+          <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
+          <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
+        </header>
+
+        <section className={`portal-stage phase-${phase}`} style={skyStyle} aria-busy={phase !== "focused"}>
+          <div className="sky-dome" aria-hidden="true">
+            <div className="sky-grid" />
+            <div className="sky-origin" style={{ left: `${fromPoint.x}%`, top: `${fromPoint.y}%` }}><i /><span>{origin.object}</span></div>
+            <div className="sky-destination" style={{ left: `${toPoint.x}%`, top: `${toPoint.y}%` }}><i /><span>{target.object}</span></div>
+            <div className="sky-reticle"><i /></div>
+            <div className="ground-location"><span>You are here</span><strong>Northern Michigan</strong><small>45.1° N · Celestial atlas projection</small></div>
+          </div>
+
+          <div className="journey-status" role="status" aria-live="polite">
+            <span>{phase === "focused" ? "Telescope locked" : phase === "traveling" ? "Slewing across the sky" : "Changing field of view"}</span>
+            <strong>{journeyLabel}</strong>
+          </div>
+
+          <figure className="capture-frame" key={`${capture.file}-${phase}`}>
+            <img src={publicImageUrl(activeImage)} alt={`${capture.title}, ${isNightSkyAI ? "NightSkyAI restack" : "gallery edit"}`} />
+            <span className="photo-watermark" aria-hidden="true"><b>Deep Space Field Notes</b><small>© Brian Jean</small></span>
+            <figcaption>
+              <span className="catalog-line"><i />{capture.object}</span>
+            </figcaption>
+          </figure>
+
+          <aside className="observation-rail">
+            <article className="telemetry">
+              <p className="eyebrow">Observation · {capture.object}</p>
+              <h2>{capture.title}</h2>
+              <p className="provenance">{activeProvenance}</p>
+              <dl>
+                <div><dt>Constellation</dt><dd>{capture.constellation}</dd></div>
+                <div><dt>Apparent position · J2000</dt><dd>{formatRa(capture.raDeg)} · {formatDec(capture.decDeg)}</dd></div>
+                <div><dt>Frames</dt><dd>{activeFrames} × {capture.exposure}</dd></div>
+                <div>
+                  <dt>{comparison && isNightSkyAI ? "Observation span" : "Captured"}</dt>
+                  <dd>{comparison && isNightSkyAI ? formatObservationSpan(comparison) : capture.date}</dd>
+                </div>
+              </dl>
+            </article>
+            <article className="field-note">
+              <p className="eyebrow">Field Note · {capture.object}</p>
+              <p className="fact">{capture.fact}</p>
+              <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
+              <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
+            </article>
+          </aside>
+        </section>
+
+        <nav className="capture-nav" aria-label="Browse captures">
+          <button onClick={() => move(-1)} aria-label="Previous capture" disabled={phase !== "focused"}><span>←</span> Previous sky field</button>
+          <div className="progress-wrap">
+            <span>{progress}</span>
+            <div className="progress-track"><i style={{ width: `${((index + 1) / captures.length) * 100}%` }} /></div>
+          </div>
+          <button onClick={() => move(1)} aria-label="Next capture" disabled={phase !== "focused"}>Next sky field <span>→</span></button>
+        </nav>
+        <p className="hint">Use arrow keys or swipe to travel the collection</p>
+      </section>
     </main>
   );
 }
