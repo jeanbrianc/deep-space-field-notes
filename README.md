@@ -21,8 +21,8 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Explains what the viewer is seeing in approachable field notes.
 - Preserves useful observing context, including frame count, exposure, filter, date, and processing method.
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
-- Lands directly in the observatory on a selected field note, with no
-  introductory gate between the visitor and the sky.
+- Lands directly in the empty observatory, where selecting the telescope opens
+  the first field note on the Andromeda Galaxy.
 - Shows one owner-selected final treatment per observation, chosen from the
   Gallery edit and the NightSkyAI restack when both exist.
 - Uses a cinematic observatory setting to keep the viewer grounded beneath the

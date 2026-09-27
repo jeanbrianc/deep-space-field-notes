@@ -224,11 +224,12 @@ function formatObservationSpan(comparison: CaptureComparison) {
 }
 
 export default function Home() {
-  const initial = Math.max(0, captures.findIndex((capture) => capture.object === "IC 5146"));
+  const initial = Math.max(0, captures.findIndex((capture) => capture.object === "M 31"));
   const [index, setIndex] = useState(initial);
   const [originIndex, setOriginIndex] = useState(initial);
   const [targetIndex, setTargetIndex] = useState(initial);
   const [phase, setPhase] = useState<Phase>("focused");
+  const [hasStarted, setHasStarted] = useState(false);
   const [galleryInView, setGalleryInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const galleryRef = useRef<HTMLElement | null>(null);
@@ -248,7 +249,7 @@ export default function Home() {
     : capture.imageRatio;
 
   const move = useCallback((delta: number) => {
-    if (phase !== "focused") return;
+    if (!hasStarted || phase !== "focused") return;
     const nextIndex = (index + delta + captures.length) % captures.length;
     if (reducedMotion) {
       setIndex(nextIndex);
@@ -259,7 +260,13 @@ export default function Home() {
     setOriginIndex(index);
     setTargetIndex(nextIndex);
     setPhase("pullback");
-  }, [index, phase, reducedMotion]);
+  }, [hasStarted, index, phase, reducedMotion]);
+
+  const beginExploring = useCallback(() => {
+    if (hasStarted) return;
+    setHasStarted(true);
+    if (!reducedMotion) setPhase("arriving");
+  }, [hasStarted, reducedMotion]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -343,8 +350,9 @@ export default function Home() {
         ref={galleryRef}
         tabIndex={-1}
         aria-label="Deep Space Field Notes observatory gallery"
-        className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}`}
+        className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}${hasStarted ? "" : " gallery-awaiting-start"}`}
         onTouchStart={(event) => {
+          if (!hasStarted) return;
           touchPoint.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }}
         onTouchEnd={(event) => {
@@ -364,7 +372,7 @@ export default function Home() {
           <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
         </header>
 
-        <section className={`portal-stage phase-${phase}`} style={skyStyle} aria-busy={phase !== "focused"}>
+        <section className={`portal-stage phase-${phase}${hasStarted ? "" : " stage-idle"}`} style={skyStyle} aria-busy={hasStarted && phase !== "focused"}>
           <div className="sky-dome" aria-hidden="true">
             <div className="sky-grid" />
             <div className="sky-origin" style={{ left: `${fromPoint.x}%`, top: `${fromPoint.y}%` }}><i /><span>{origin.object}</span></div>
@@ -373,20 +381,35 @@ export default function Home() {
             <div className="ground-location"><span>You are here</span><strong>Northern Michigan</strong><small>45.1° N · Celestial atlas projection</small></div>
           </div>
 
-          <div className="journey-status" role="status" aria-live="polite">
-            <span>{phase === "focused" ? "Telescope locked" : phase === "traveling" ? "Slewing across the sky" : "Changing field of view"}</span>
-            <strong>{journeyLabel}</strong>
-          </div>
+          {!hasStarted && (
+            <>
+              <h1 className="visually-hidden">Deep Space Field Notes observatory</h1>
+              <button className="telescope-start" type="button" onClick={beginExploring} aria-label="Open the telescope on the Andromeda Galaxy">
+                <span>Begin with Andromeda</span>
+                <strong>Select the telescope</strong>
+                <i aria-hidden="true" />
+              </button>
+            </>
+          )}
 
-          <figure className="capture-frame" key={`${capture.file}-${phase}`}>
-            <img src={publicImageUrl(activeImage)} alt={`${capture.title}, ${isNightSkyAI ? "NightSkyAI restack" : "gallery edit"}`} />
-            <span className="photo-watermark" aria-hidden="true"><b>Deep Space Field Notes</b><small>© Brian Jean</small></span>
-            <figcaption>
-              <span className="catalog-line"><i />{capture.object}</span>
-            </figcaption>
-          </figure>
+          {hasStarted && (
+            <div className="journey-status" role="status" aria-live="polite">
+              <span>{phase === "focused" ? "Telescope locked" : phase === "traveling" ? "Slewing across the sky" : "Changing field of view"}</span>
+              <strong>{journeyLabel}</strong>
+            </div>
+          )}
 
-          <aside className="observation-rail">
+          {hasStarted && (
+            <figure className="capture-frame" key={`${capture.file}-${phase}`}>
+              <img src={publicImageUrl(activeImage)} alt={`${capture.title}, ${isNightSkyAI ? "NightSkyAI restack" : "gallery edit"}`} />
+              <span className="photo-watermark" aria-hidden="true"><b>Deep Space Field Notes</b><small>© Brian Jean</small></span>
+              <figcaption>
+                <span className="catalog-line"><i />{capture.object}</span>
+              </figcaption>
+            </figure>
+          )}
+
+          {hasStarted && <aside className="observation-rail">
             <article className="telemetry">
               <p className="eyebrow">Observation · {capture.object}</p>
               <h1>{capture.title}</h1>
@@ -407,16 +430,22 @@ export default function Home() {
               <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
               <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
             </article>
-          </aside>
+          </aside>}
         </section>
 
         <nav className="capture-nav" aria-label="Browse captures">
-          <button onClick={() => move(-1)} aria-label="Previous capture" disabled={phase !== "focused"}><span>←</span> Previous sky field</button>
-          <div className="progress-wrap">
-            <span>{progress}</span>
-            <div className="progress-track"><i style={{ width: `${((index + 1) / captures.length) * 100}%` }} /></div>
-          </div>
-          <button onClick={() => move(1)} aria-label="Next capture" disabled={phase !== "focused"}>Next sky field <span>→</span></button>
+          {hasStarted ? (
+            <>
+              <button onClick={() => move(-1)} aria-label="Previous capture" disabled={phase !== "focused"}><span>←</span> Previous sky field</button>
+              <div className="progress-wrap">
+                <span>{progress}</span>
+                <div className="progress-track"><i style={{ width: `${((index + 1) / captures.length) * 100}%` }} /></div>
+              </div>
+              <button onClick={() => move(1)} aria-label="Next capture" disabled={phase !== "focused"}>Next sky field <span>→</span></button>
+            </>
+          ) : (
+            <p className="awaiting-message"><span>Observatory ready</span>Select the telescope to begin</p>
+          )}
         </nav>
         <p className="hint">Use arrow keys or swipe to travel the collection</p>
       </section>

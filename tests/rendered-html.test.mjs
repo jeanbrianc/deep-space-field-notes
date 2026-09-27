@@ -12,7 +12,7 @@ test("gallery ships the complete capture collection and interactions", async () 
 
   const referencedImages = new Set(page.match(/Stacked_[^"\n]+_(?:cleaned|hand_processed)\.(?:jpg|png)/g) ?? []);
   assert.equal(referencedImages.size, 33);
-  assert.equal((page.match(/<h1\b/g) ?? []).length, 1);
+  assert.equal((page.match(/<h1\b/g) ?? []).length, 2);
   assert.doesNotMatch(page, /M 106|Messier 106/);
   assert.match(page, /ArrowLeft/);
   assert.match(page, /ArrowRight/);
@@ -21,10 +21,19 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /galleryInView/);
   assert.match(page, /Observation ·/);
   assert.match(page, /Northern Michigan/);
+  assert.match(page, /findIndex\(\(capture\) => capture\.object === "M 31"\)/);
+  assert.doesNotMatch(page, /findIndex\(\(capture\) => capture\.object === "IC 5146"\)/);
+  assert.match(page, /const \[hasStarted, setHasStarted\] = useState\(false\)/);
+  assert.match(page, /className="telescope-start"/);
+  assert.match(page, /Open the telescope on the Andromeda Galaxy/);
+  assert.match(page, /Begin with Andromeda/);
+  assert.match(page, /Select the telescope/);
+  assert.match(page, /\{hasStarted && \(/);
+  assert.match(page, /if \(!hasStarted \|\| phase !== "focused"\) return/);
   assert.doesNotMatch(page, /EntrancePhase|entrancePhase|startExploring|Skip introduction|Start exploring|entry-method|observatory-entry/);
   assert.match(page, /contenteditable='true'/);
   assert.match(page, /aria-label="Deep Space Field Notes observatory gallery"/);
-  assert.match(page, /className=\{`gallery-shell\$\{galleryInView \? " gallery-is-visible" : ""\}`\}/);
+  assert.match(page, /gallery-awaiting-start/);
   assert.doesNotMatch(page, /\binert=/);
   assert.match(page, /<h1>\{capture\.title\}<\/h1>/);
   assert.match(page, /IntersectionObserver/);
@@ -47,6 +56,9 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.doesNotMatch(page, /\/api\/votes|submitVote|variantOverride|voteState/);
   assert.doesNotMatch(css, /\.processing-switch|\.vote-panel|\.vote-options/);
   assert.doesNotMatch(css, /observatory-entry|entry-welcome|entry-method|entranceIris|site-entering|site-ready|300svh/);
+  assert.match(css, /\.telescope-start/);
+  assert.match(css, /@keyframes telescopePulse/);
+  assert.match(css, /\.stage-idle \.sky-dome/);
   assert.match(css, /\.telemetry h1/);
   assert.match(css, /object-position: 50% 50%/);
   assert.match(css, /@keyframes skyTravel/);
