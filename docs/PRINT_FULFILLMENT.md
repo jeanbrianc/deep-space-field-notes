@@ -4,7 +4,9 @@ Deep Space Field Notes stays at `deepspace.brianjeanbuilds.com` on Sites. Fourth
 
 ## Collection and customer flow
 
-All 33 gallery captures have independent poster concepts. The two Andromeda captures, repeated common names, and catalog aliases each retain their own stable print ID. The gallery control opens `/prints/<id>` with the actual poster composition. Until sales are ready, it says **Print coming soon**. Once activated, **Buy this print** opens the exact Fourthwall product page in a new tab. Fourthwall supplies authoritative pricing, tax, shipping, payment and order support.
+All 33 gallery captures have independent posters. On September 30, 2026, all 33 matching Fourthwall listings were verified PUBLIC and AVAILABLE, with one White 12 × 18 variant at $25 USD. The shop was verified LIVE, and every exact product page opened publicly without a password. The two Andromeda captures, repeated common names, and catalog aliases each retain their own stable print ID. The gallery control opens `/prints/<id>` with the actual poster composition. Until sales are ready, it says **Print coming soon**. Once activated, **Buy this print** opens the exact Fourthwall product page in a new tab. Fourthwall supplies authoritative pricing, tax, shipping, payment and order support.
+
+Complete Fourthwall mockups were visually reviewed before saving, including the paper edges and inset text panels. The API does not expose the designer's safe-area overlays or resolution warnings, so those checks are not recorded as passed. Physical quality remains unverified until the Orion sample is inspected.
 
 ## Prepare the artwork
 
@@ -16,19 +18,19 @@ This uses the same capture-file-specific owner-selected source shown in the gall
 
 Web previews go to `public/prints/`; 3600 × 5400 concept JPGs and a provenance manifest go to ignored `print_products/masters/edge-to-edge-v1/`. A collection review sheet is saved alongside the concepts. Original photos, comparison provenance and legacy masters remain unchanged. `npm run prints:prepare-legacy` retains the previous four-print framed layout.
 
-**Current gallery exports are not production-approved originals.** Their native resolution is about 31–90 pixels per inch at a 12-inch width. A 300 DPI tag on an enlarged file does not add detail. Obtain suitable higher-resolution exports and review the crop individually before uploading production artwork. Replacing a source or changing the rendered poster clears that product's approvals and purchase URL on regeneration.
+**Current gallery exports are not production-approved originals.** Their native resolution is about 31–90 pixels per inch at a 12-inch width. A 300 DPI tag on an enlarged file does not add detail. Suitable higher-resolution exports remain preferable. On September 30, Brian explicitly authorized public sales for the complete 33-print collection before the Orion sample arrives for the October 1 demo; this authorization does not establish that physical quality has passed inspection. Brian ordered a physical Orion sample of the current edge-to-edge artwork to judge its real printed quality. Its quality review remains pending. Replacing a source or changing the rendered poster clears that product's approvals and purchase URL on regeneration.
 
 ## Fourthwall setup and activation
 
-1. Confirm the connected Fourthwall shop identity. The proof-of-concept API returned Brian, `brian-wsn-shop`, with the shop in `COMING_SOON` mode. Reverify before writes; do not infer an account from a historic designer URL.
-2. Confirm the intended retail price with Brian. $30 has been recommended but is not automatically authorized.
-3. For each approved master, create the Enhanced Matte Paper Poster (Allcolor P001), White, 12 × 18 only, initially hidden. Inspect the complete Fourthwall render, paper edges, printable safe area and resolution warnings before saving.
-4. Physical sample review remains required by this runbook. Do not order a sample or spend money without authorization. Record a passed sample honestly; never set `sampleApproved` merely to reveal a button.
+1. Confirm the connected Fourthwall shop identity. The API returned Brian, `brian-wsn-shop`, verified LIVE on September 30. Reverify before writes; do not infer an account from a historic designer URL.
+2. Brian approved $25 USD per 12 × 18 print on September 30, 2026. Apply that retail price to new listings and verify it by readback.
+3. For each approved master, create the Enhanced Matte Paper Poster (Allcolor P001), White, 12 × 18 only. Inspect the complete Fourthwall render and paper edges before saving; check printable safe areas and resolution warnings when the designer exposes them. The API creation step temporarily stages a hidden listing, then immediately publishes and verifies it when public sales are authorized. Final collection listings must be public.
+4. Physical sample review is the default launch gate. Brian may explicitly authorize earlier sales for reviewed artwork; he authorized the complete collection on September 30. Record that decision separately in `salesApproval`, binding it to the exact artwork SHA, and keep `sampleApproved` false until physical inspection passes. Do not order a sample or spend money without authorization.
 5. Obtain authorization to open sales, verify the shop can accept purchases, publish the corresponding product and read back its status and exact customer-facing product URL. The earlier single Andromeda POC remains hidden; its framed artwork is different from these new concepts.
-6. Set `storefrontOrigin` in `print_products/catalog.json` to the verified Fourthwall HTTPS storefront origin. Use a separate Fourthwall address, preserving the gallery domain. Set the product's exact `checkoutUrl`, `artworkApproved`, `sampleApproved`, and `productPublished` only when each is verified. All four requirements are checked, along with a product URL on that same origin.
+6. Set `storefrontOrigin` in `print_products/catalog.json` to the verified Fourthwall HTTPS storefront origin. Use a separate Fourthwall address, preserving the gallery domain. Set the product's exact `checkoutUrl`, `artworkApproved`, and `productPublished` only when each is verified. Purchasing also requires either an approved physical sample or explicit owner `salesApproval` for that same artwork hash. The complete 33-print collection is authorized for early public sales; the Orion sample is ordered and awaiting review. Each approved layout retains its own artwork-bound launch approval. Changed artwork invalidates the early-sales approval. Verify the storefront is Live and the exact page is publicly accessible without a password before linking it.
 7. Run `npm test` and publish this existing Site in place. Its public preview becomes purchasable for each approved record independently. Do not fabricate links from slugs or use the shop homepage as a substitute for a product page.
 
-No Fourthwall API credential is needed in the public gallery. Store passwords only in the user's approved credential connection, never in site files or browser code.
+No Fourthwall API credential is needed in the public gallery. Store passwords only in the user's approved credential connection, never in site files or browser code. Brian provided an AWS Secrets Manager reference: `fourthwall/api/creds` in `us-east-1`, with `API_USERNAME` and `API_PASSWORD` fields. Use the AWS Secrets Manager skill's runtime dynamic-reference wrapper for future connections, with sanitized identity verification. Never print or persist resolved secret values.
 
 ## Listing language
 
@@ -38,10 +40,10 @@ Do not claim the full source field is preserved in this edge-to-edge layout.
 
 ## Price and shipping
 
-The verified POC production cost is $11.50. Fourthwall's US card fee is 2.9% + $0.30 on the full customer payment, including shipping and tax; payment methods differ. Fourthwall's typical US first-item poster shipping estimate is $4–$7, not an exact variant/destination quote. Customer-paid shipping is passed through. At $30 retail, these assumptions leave about $17.13–$17.21 before tax-related processing fees and other business costs.
+The verified POC production cost is $11.50. Fourthwall's US card fee is 2.9% + $0.30 on the full customer payment, including shipping and tax; payment methods differ. Fourthwall's typical US first-item poster shipping estimate is $4–$7, not an exact variant/destination quote. Customer-paid shipping is passed through. At the approved $25 retail price, these assumptions leave about $12.27–$12.36 before tax-related processing fees and other business costs.
 
 Sources: [Transaction fees](https://help.fourthwall.com/frequently-asked-questions/payments-and-pricing/transaction-fees) and [Shipping costs](https://help.fourthwall.com/frequently-asked-questions/shipping-and-orders/shipping-costs), checked September 30, 2026. No checkout is needed for the category estimate.
 
 ## Disable sales
 
-Clear the product's `productPublished`, `artworkApproved`, or `sampleApproved`, or remove its checkout URL, then republish the gallery. The local preview remains, but purchasing stops. Also hide the product in Fourthwall if direct product-page sales should stop. A gallery-only takedown does not disable Fourthwall's own URL.
+Clear the product's `productPublished` or `artworkApproved`, or remove its checkout URL, then republish the gallery. The local preview remains, but purchasing stops. Also hide the product in Fourthwall if direct product-page sales should stop. A gallery-only takedown does not disable Fourthwall's own URL.

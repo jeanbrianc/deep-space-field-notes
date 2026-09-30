@@ -114,9 +114,11 @@ All 33 observations have a separate 12 × 18 inch poster concept. Selecting **Bu
 
 The gallery remains hosted at `deepspace.brianjeanbuilds.com`. Fourthwall handles payment, taxes, shipping and fulfillment on its own product pages; linking those pages does not require moving the gallery domain or replacing DNS records. No API credentials belong in browser code.
 
-`npm run prints:prepare` generates web previews under `public/prints/` and concept masters under ignored `print_products/masters/edge-to-edge-v1/`. Original photos and legacy masters remain unchanged. Current sources supply only about 31–90 native pixels per inch at 12 inches wide. Exporting 3600 × 5400 pixels with 300 DPI metadata does not add captured detail. These are design previews pending higher-resolution originals and production review.
+`npm run prints:prepare` generates web previews under `public/prints/` and concept masters under ignored `print_products/masters/edge-to-edge-v1/`. Original photos and legacy masters remain unchanged. Current sources supply only about 31–90 native pixels per inch at 12 inches wide. Exporting 3600 × 5400 pixels with 300 DPI metadata does not add captured detail. Brian authorized sales of this artwork before physical sample review for the October 1 demo; native image detail is unchanged by enlargement.
 
-Each preview clearly says **Print coming soon** until its catalog entry has a verified storefront origin and exact HTTPS product URL, reviewed artwork, approved physical sample, and a published Fourthwall listing. Only then does its purchase button lead to Fourthwall. Regenerating changed artwork clears those approvals and its product link. See **[Print fulfillment runbook](docs/PRINT_FULFILLMENT.md)** for activation and takedown.
+The approved intended retail price is **$25 USD per print**; actual Fourthwall listings must be created and verified at that price.
+
+Each preview says **Print coming soon** until its catalog entry has a verified storefront origin and exact HTTPS product URL, reviewed artwork, a published Fourthwall listing, and either an approved physical sample or explicit owner launch approval bound to that artwork. Brian authorized the complete 33-print collection for sales before physical sample review on September 30 for the October 1 demo; the sample remains awaiting inspection. Only then does its purchase button lead to Fourthwall. Regenerating changed artwork clears those approvals and its product link. See **[Print fulfillment runbook](docs/PRINT_FULFILLMENT.md)** for activation and takedown.
 
 ## Design principles
 

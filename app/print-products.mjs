@@ -1,5 +1,8 @@
 export function purchaseUrlForProduct(product, storefrontOrigin) {
-  if (!product?.sampleApproved || !product.artworkApproved || !product.productPublished || !product.checkoutUrl || !storefrontOrigin) return null;
+  const ownerAuthorizedBeforeSample = product?.salesApproval?.approved === true
+    && !!product.artworkSha256
+    && product.salesApproval.artworkSha256 === product.artworkSha256;
+  if (!(product?.sampleApproved || ownerAuthorizedBeforeSample) || !product.artworkApproved || !product.productPublished || !product.checkoutUrl || !storefrontOrigin) return null;
   try {
     const origin = new URL(storefrontOrigin);
     const url = new URL(product.checkoutUrl);

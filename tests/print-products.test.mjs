@@ -17,3 +17,14 @@ test('purchase redirects stay on the verified HTTPS shop product pages', () => {
     assert.equal(purchaseUrlForProduct({...ready,checkoutUrl}, origin), null);
   }
 });
+test('explicit owner launch approval can precede sample review only for the same artwork', () => {
+  const product = {...ready, sampleApproved:false, artworkSha256:'reviewed-artwork', salesApproval:{approved:true, artworkSha256:'reviewed-artwork'}};
+  assert.equal(purchaseUrlForProduct(product, origin), ready.checkoutUrl);
+  for (const changed of [
+    {salesApproval:{approved:false,artworkSha256:'reviewed-artwork'}},
+    {artworkSha256:'replacement-artwork'},
+    {artworkSha256:null},
+    {artworkApproved:false},
+    {productPublished:false},
+  ]) assert.equal(purchaseUrlForProduct({...product,...changed}, origin), null);
+});

@@ -437,7 +437,7 @@ export default function Home() {
                   href={`/prints/${printProduct.id}`}
                   aria-label={`View the ${printProduct.sizeLabel} of ${capture.title}`}
                 >
-                  <span>{printProduct.sizeLabel}{!printProduct.checkoutUrl && " · Coming soon"}</span>
+                  <span>{printProduct.sizeLabel}{printProduct.checkoutUrl ? ` · ${printProduct.priceLabel}` : " · Coming soon"}</span>
                   <strong>{printProduct.checkoutUrl ? "Buy this print" : "Preview this print"}</strong>
                 </a>
               )}
