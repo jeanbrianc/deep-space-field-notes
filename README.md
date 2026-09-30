@@ -110,9 +110,13 @@ The transitions between observations follow each target's catalog coordinates, s
 
 ## Print fulfillment
 
-The first physical collection is deliberately small: Andromeda, Orion, the Eastern Veil, and the Western Veil. `npm run prints:prepare` creates exact 12 × 18 inch, 300 DPI poster masters under ignored `print_products/masters/`. Each design preserves the full selected photograph inside a cinematic black field-note border rather than cropping a portrait frame to fill the paper.
+All 33 observations have a separate 12 × 18 inch poster concept. Selecting **Buy this print** in the observation opens its matching `/prints/<id>` preview page. Standard and mosaic Andromeda captures, and targets with shared common names, retain distinct listings. The poster uses the gallery's owner-selected source with proportional edge-to-edge cropping and black field-note panels.
 
-Fourthwall handles checkout, payment details, tax, shipping, and fulfillment. A gallery purchase link remains hidden until its catalog entry contains a real HTTPS Fourthwall product URL and `sampleApproved` is explicitly set to `true` after a physical sample passes review. See **[Print fulfillment runbook](docs/PRINT_FULFILLMENT.md)** for the upload, sample, inspection, activation, and takedown process.
+The gallery remains hosted at `deepspace.brianjeanbuilds.com`. Fourthwall handles payment, taxes, shipping and fulfillment on its own product pages; linking those pages does not require moving the gallery domain or replacing DNS records. No API credentials belong in browser code.
+
+`npm run prints:prepare` generates web previews under `public/prints/` and concept masters under ignored `print_products/masters/edge-to-edge-v1/`. Original photos and legacy masters remain unchanged. Current sources supply only about 31–90 native pixels per inch at 12 inches wide. Exporting 3600 × 5400 pixels with 300 DPI metadata does not add captured detail. These are design previews pending higher-resolution originals and production review.
+
+Each preview clearly says **Print coming soon** until its catalog entry has a verified storefront origin and exact HTTPS product URL, reviewed artwork, approved physical sample, and a published Fourthwall listing. Only then does its purchase button lead to Fourthwall. Regenerating changed artwork clears those approvals and its product link. See **[Print fulfillment runbook](docs/PRINT_FULFILLMENT.md)** for activation and takedown.
 
 ## Design principles
 
@@ -157,7 +161,7 @@ aligned manifest as if its derivative were fresh source material.
 - `app/comparisons.ts` binds stable captures to the selected treatment and its
   hash-versioned comparison provenance.
 - `app/comparisons.generated.json` is the build-safe projection of the public comparison manifest; refresh it with `npm run comparisons:sync` after exporting new comparisons.
-- `app/print-catalog.ts` exposes only sample-approved print products with valid HTTPS checkout URLs.
+- `app/print-catalog.ts` maps every capture to its poster preview and exposes purchase links only for approved live products.
 - `app/api/votes/` and the small database schema retain the earlier comparison
   experiment's historical endpoint; the current public journal does not call it.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
@@ -172,8 +176,7 @@ aligned manifest as if its derivative were fresh source material.
 - `scripts/audit_comparison_alignment.py` performs the deterministic,
   fail-closed star-field audit and produces verified aligned derivatives.
 - `print_products/catalog.json` is the guarded Fourthwall product registry;
-  `scripts/prepare-print-products.mjs` creates reproducible, uncropped poster
-  masters without modifying gallery photographs.
+  `scripts/prepare-print-collection.mjs` creates poster concepts and web previews without modifying gallery photographs. The legacy generator is retained separately.
 - `db/schema.ts` and `drizzle/` define the retained historical vote database.
 - `tests/` checks the collection, interactions, descriptions, and required media.
 
