@@ -425,6 +425,38 @@ button { font: inherit; }
   line-height: 1.55;
   letter-spacing: .08em;
 }
+.print-link {
+  margin-top: 24px;
+  min-height: 66px;
+  padding: 13px 16px;
+  border: 1px solid #7f6139;
+  background: rgba(169, 123, 62, .08);
+  color: #ece9df;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  text-decoration: none;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+.print-link:hover,
+.print-link:focus-visible {
+  border-color: #d9ad6d;
+  background: rgba(169, 123, 62, .16);
+  color: #fffdf4;
+}
+.print-link:focus-visible { outline: 2px solid #d9ad6d; outline-offset: 3px; }
+.print-link span {
+  color: #999a92;
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.print-link strong {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  white-space: nowrap;
+}
 
 .phase-pullback .capture-frame {
   will-change: left, top, width, height, opacity, transform, border-radius;
@@ -603,6 +635,7 @@ button { font: inherit; }
   .telemetry { padding: 30px 24px 24px; }
   .telemetry h1 { font-size: clamp(42px, 13vw, 66px); }
   .field-note { padding: 27px 24px 34px; }
+  .print-link { align-items: flex-start; flex-direction: column; gap: 6px; }
   .capture-nav { position: sticky; bottom: 0; padding: 0 18px; }
   .capture-nav button { max-width: 110px; line-height: 1.45; }
   .progress-track { width: 58px; }

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "provider": "fourthwall",
+  "product": {
+    "kind": "matte-poster",
+    "sizeLabel": "12 × 18 in matte poster",
+    "widthPx": 3600,
+    "heightPx": 5400,
+    "density": 300
+  },
+  "products": [
+    {
+      "id": "andromeda-galaxy",
+      "object": "M 31",
+      "title": "Andromeda Galaxy",
+      "checkoutUrl": null,
+      "sampleApproved": false
+    },
+    {
+      "id": "orion-nebula",
+      "object": "M 42",
+      "title": "Orion Nebula",
+      "checkoutUrl": null,
+      "sampleApproved": false
+    },
+    {
+      "id": "eastern-veil-nebula",
+      "object": "NGC 6992",
+      "title": "Eastern Veil Nebula",
+      "checkoutUrl": null,
+      "sampleApproved": false
+    },
+    {
+      "id": "western-veil-nebula",
+      "object": "NGC 6960",
+      "title": "Western Veil Nebula",
+      "checkoutUrl": null,
+      "sampleApproved": false
+    }
+  ]
+}

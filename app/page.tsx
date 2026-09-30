@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { comparisons, type CaptureComparison } from "./comparisons";
+import { printProductForObject } from "./print-catalog";
 
 const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
@@ -247,6 +248,7 @@ export default function Home() {
   const activeRatio = comparison && isNightSkyAI
     ? comparison.nightskyaiFullFieldRatio
     : capture.imageRatio;
+  const printProduct = printProductForObject(capture.object);
 
   const move = useCallback((delta: number) => {
     if (!hasStarted || phase !== "focused") return;
@@ -429,6 +431,18 @@ export default function Home() {
               <p className="fact">{capture.fact}</p>
               <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
               <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
+              {printProduct && (
+                <a
+                  className="print-link"
+                  href={printProduct.checkoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Buy a ${printProduct.sizeLabel} of ${capture.title}`}
+                >
+                  <span>Available as a {printProduct.sizeLabel}</span>
+                  <strong>Buy this print</strong>
+                </a>
+              )}
             </article>
           </aside>}
         </section>

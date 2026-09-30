@@ -2,7 +2,7 @@
 
 **A cinematic observatory journal built from real astrophotography captured under Northern Michigan skies.**
 
-[Explore the live collection](https://deep-space-field-notes.vjgwrz72pz.chatgpt.site/)
+[Explore the live collection](https://deepspace.brianjeanbuilds.com/)
 
 ![Deep Space Field Notes — a cinematic journey through the Northern Michigan night sky](public/og.png)
 
@@ -108,6 +108,12 @@ still be requested separately.
 
 The transitions between observations follow each target's catalog coordinates, so the direction and relative movement are grounded in the real celestial map. The horizon and observatory scene are cinematic rather than a live planetarium calculation: they do not claim to reproduce the exact altitude, direction, season, or time of night for every capture.
 
+## Print fulfillment
+
+The first physical collection is deliberately small: Andromeda, Orion, the Eastern Veil, and the Western Veil. `npm run prints:prepare` creates exact 12 × 18 inch, 300 DPI poster masters under ignored `print_products/masters/`. Each design preserves the full selected photograph inside a cinematic black field-note border rather than cropping a portrait frame to fill the paper.
+
+Fourthwall handles checkout, payment details, tax, shipping, and fulfillment. A gallery purchase link remains hidden until its catalog entry contains a real HTTPS Fourthwall product URL and `sampleApproved` is explicitly set to `true` after a physical sample passes review. See **[Print fulfillment runbook](docs/PRINT_FULFILLMENT.md)** for the upload, sample, inspection, activation, and takedown process.
+
 ## Design principles
 
 - **Observation before interface.** The photograph remains the focal point.
@@ -151,6 +157,7 @@ aligned manifest as if its derivative were fresh source material.
 - `app/comparisons.ts` binds stable captures to the selected treatment and its
   hash-versioned comparison provenance.
 - `app/comparisons.generated.json` is the build-safe projection of the public comparison manifest; refresh it with `npm run comparisons:sync` after exporting new comparisons.
+- `app/print-catalog.ts` exposes only sample-approved print products with valid HTTPS checkout URLs.
 - `app/api/votes/` and the small database schema retain the earlier comparison
   experiment's historical endpoint; the current public journal does not call it.
 - `app/globals.css` defines the cinematic observatory presentation and sky-travel motion.
@@ -164,6 +171,9 @@ aligned manifest as if its derivative were fresh source material.
   28 tracked display decisions.
 - `scripts/audit_comparison_alignment.py` performs the deterministic,
   fail-closed star-field audit and produces verified aligned derivatives.
+- `print_products/catalog.json` is the guarded Fourthwall product registry;
+  `scripts/prepare-print-products.mjs` creates reproducible, uncropped poster
+  masters without modifying gallery photographs.
 - `db/schema.ts` and `drizzle/` define the retained historical vote database.
 - `tests/` checks the collection, interactions, descriptions, and required media.
 
