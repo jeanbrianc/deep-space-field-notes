@@ -161,8 +161,10 @@ test("every gallery capture has its own poster preview", async () => {
   assert.match(page, /Buy this print/);
   for (const product of catalog.products) {
     assert.match(product.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-    assert.equal(product.previewUrl, `/prints/${product.id}.jpg`);
-    const preview = await readFile(new URL(`public${product.previewUrl}`, root));
+    const previewUrl = new URL(product.previewUrl, 'https://gallery.invalid');
+    assert.equal(previewUrl.pathname, `/prints/${product.id}.jpg`);
+    if (previewUrl.search) assert.equal(previewUrl.searchParams.get('v'), product.artworkSha256.slice(0,12));
+    const preview = await readFile(new URL(`public${previewUrl.pathname}`, root));
     assert.ok(preview.length > 10000);
   }
 });

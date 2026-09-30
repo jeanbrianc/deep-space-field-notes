@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { captureRotation } from '../app/capture-orientation.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const page = await readFile(path.join(root, 'app/page.tsx'), 'utf8');
@@ -11,7 +12,12 @@ const names = Object.fromEntries([...page.match(/const commonNames:[\s\S]*?= \{(
 names.Unknown = 'Uncharted Field';
 const manifest = JSON.parse(await readFile(path.join(root, 'public/comparisons/manifest.json'), 'utf8'));
 const catalogPath = path.join(root, 'print_products/catalog.json');
-const catalog = JSON.parse(await readFile(catalogPath, 'utf8'));
+const originalCatalogText = await readFile(catalogPath, 'utf8');
+const catalog = JSON.parse(originalCatalogText);
+const args = process.argv.slice(2);
+if (args.length && (args.length !== 2 || args[0] !== '--only')) throw new Error('Usage: prepare-print-collection.mjs [--only <existing-print-id>]');
+const onlyId = args[1] ?? null;
+if (onlyId && !catalog.products.some(p => p.id === onlyId)) throw new Error(`Unknown print ID: ${onlyId}`);
 const previous = new Map(catalog.products.map(p => [p.captureFile ?? p.object, p]));
 const masters = path.join(root, 'print_products/masters/edge-to-edge-v1');
 const previews = path.join(root, 'public/prints');
@@ -28,14 +34,21 @@ for (const file of files) {
   const title = (names[rawObject.replace(/^mosaic_/, '')] ?? object) + (mosaic ? ' · Mosaic' : '');
   const comparison = manifest.captures.find(c => c.baseline.filename === file);
   const nightsky = comparison?.curatedDefault === 'nightskyai';
+  const old = previous.get(file) ?? previous.get(object);
+  const id = old?.id ?? `${title}-${object}`.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (onlyId && id !== onlyId) {
+    if (!old) throw new Error(`Missing existing record: ${id}`);
+    products.push(old);
+    continue;
+  }
   const source = nightsky ? path.join(root, 'public/comparisons', comparison.nightSkyAI.alignment?.sourceFilename ?? comparison.nightSkyAI.filename) : path.join(root, 'public/images', file);
   const bytes = await readFile(source), meta = await sharp(bytes).metadata();
   const frames = nightsky ? comparison.nightSkyAI.frames : Number(m[1]);
   const treatment = nightsky ? 'NIGHTSKYAI SELECTED STACK' : 'GALLERY SELECTED EDIT';
-  const old = previous.get(file) ?? previous.get(object);
-  const id = old?.id ?? `${title}-${object}`.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   if (products.some(p => p.id === id)) throw new Error(`Duplicate print ID: ${id}`);
-  const image = await sharp(bytes).rotate().resize(width, height, { fit:'cover', position:'centre' }).toColourspace('srgb').toBuffer();
+  const displayRotationDegrees = captureRotation(file, nightsky ? 'nightskyai' : 'seestar');
+  const normalized = displayRotationDegrees ? await sharp(bytes).autoOrient().png().toBuffer() : bytes;
+  const image = await sharp(normalized).rotate(displayRotationDegrees || undefined).resize(width, height, { fit:'cover', position:'centre' }).toColourspace('srgb').toBuffer();
   const titleSize = title.length > 25 ? 100 : 126;
   const overlay = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
     <rect x="180" y="180" width="2210" height="330" fill="black"/>
@@ -54,18 +67,30 @@ for (const file of files) {
   const fingerprint = hash(bytes);
   const artworkSha256 = hash(poster);
   const unchanged = old?.sourceSha256 === fingerprint && old?.artworkSha256 === artworkSha256 && old?.layout === 'edge-to-edge-v1';
-  products.push({id,object,title,captureFile:file,previewUrl:`/prints/${id}.jpg`,layout:'edge-to-edge-v1',artworkSha256,sourceSha256:fingerprint,sourcePixels:[meta.width,meta.height],nativeDpiAtPrintWidth:Number((meta.width/12).toFixed(1)),checkoutUrl:unchanged ? old.checkoutUrl : null,salesApproval:unchanged ? old.salesApproval ?? null : null,sampleApproved:unchanged ? old.sampleApproved : false,artworkApproved:unchanged ? old.artworkApproved : false,productPublished:unchanged ? old.productPublished : false,...(old?.fourthwallProductId ? {fourthwallProductId:old.fourthwallProductId} : {})});
-  proof.push({id,object,source:path.relative(root,source),sourceSha256:fingerprint,sourcePixels:[meta.width,meta.height],frames,treatment,nativeDpiAtPrintWidth:meta.width/12,outputSha256:hash(poster),printReady:false});
-  thumbs.push({input:await sharp(poster).resize(240,360).png().toBuffer(),left:(products.length-1)%6*260+10,top:Math.floor((products.length-1)/6)*400+10});
+  products.push({...old,id,object,title,captureFile:file,previewUrl:`/prints/${id}.jpg?v=${artworkSha256.slice(0,12)}`,layout:'edge-to-edge-v1',displayRotationDegrees,artworkSha256,sourceSha256:fingerprint,sourcePixels:[meta.width,meta.height],nativeDpiAtPrintWidth:Number((meta.width/12).toFixed(1)),checkoutUrl:unchanged ? old.checkoutUrl : null,salesApproval:unchanged ? old.salesApproval ?? null : null,sampleApproved:unchanged ? old.sampleApproved : false,artworkApproved:unchanged ? old.artworkApproved : false,productPublished:unchanged ? old.productPublished : false});
+  proof.push({id,object,source:path.relative(root,source),sourceSha256:fingerprint,sourcePixels:[meta.width,meta.height],frames,treatment,displayRotationDegrees,nativeDpiAtPrintWidth:meta.width/12,outputSha256:hash(poster),printReady:false});
+  thumbs.push({input:await sharp(poster).resize(240,360).png().toBuffer(),left:(proof.length-1)%6*260+10,top:Math.floor((proof.length-1)/6)*400+10});
   console.log(`Prepared ${title}`);
 }
 catalog.schemaVersion=2;
 catalog.storefrontOrigin ??= null;
 catalog.product.layout='edge-to-edge-v1';
 catalog.products=products;
-await writeFile(catalogPath,JSON.stringify(catalog,null,2)+'\n');
-await writeFile(path.join(masters,'manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),products:proof},null,2)+'\n');
-const rows=Math.ceil(products.length/6);
-const labels=Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="${rows*400}">${products.map((p,i)=>`<text x="${i%6*260+10}" y="${Math.floor(i/6)*400+392}" fill="white" font-family="Arial" font-size="12">${escape(p.object+' · '+p.title).slice(0,45)}</text>`).join('')}</svg>`);
-await sharp({create:{width:1560,height:rows*400,channels:3,background:'#17191b'}}).composite([...thumbs,{input:labels,left:0,top:0}]).png().toFile(path.join(masters,'collection-review.png'));
-console.log(`${products.length} poster concepts prepared. No product or sale approvals granted.`);
+if (onlyId) {
+  const marker = `"id": ${JSON.stringify(onlyId)}`;
+  const offset = originalCatalogText.indexOf(marker);
+  const start = originalCatalogText.lastIndexOf('\n    {',offset) + 1;
+  const end = originalCatalogText.indexOf('\n    }',offset) + 6;
+  const oldBlock = originalCatalogText.slice(start,end);
+  if (JSON.parse(oldBlock).id !== onlyId) throw new Error('Cannot locate the targeted catalog record safely');
+  const newBlock = JSON.stringify(products.find(p => p.id === onlyId),null,2).split('\n').map(line => `    ${line}`).join('\n');
+  await writeFile(catalogPath,originalCatalogText.slice(0,start)+newBlock+originalCatalogText.slice(end));
+} else {
+  await writeFile(catalogPath,JSON.stringify(catalog,null,2)+'\n');
+}
+await writeFile(path.join(masters,onlyId ? `${onlyId}-manifest.json` : 'manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),products:proof},null,2)+'\n');
+const rows=Math.ceil(proof.length/6);
+const renderedProducts = onlyId ? products.filter(p => p.id === onlyId) : products;
+const labels=Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="${rows*400}">${renderedProducts.map((p,i)=>`<text x="${i%6*260+10}" y="${Math.floor(i/6)*400+392}" fill="white" font-family="Arial" font-size="12">${escape(p.object+' · '+p.title).slice(0,45)}</text>`).join('')}</svg>`);
+await sharp({create:{width:1560,height:rows*400,channels:3,background:'#17191b'}}).composite([...thumbs,{input:labels,left:0,top:0}]).png().toFile(path.join(masters,onlyId ? `${onlyId}-review.png` : 'collection-review.png'));
+console.log(`${proof.length} poster concepts prepared. No product or sale approvals granted.`);

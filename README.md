@@ -185,3 +185,7 @@ aligned manifest as if its derivative were fresh source material.
 ## Photography
 
 Astrophotography © Brian Jean. The images are shared here as part of Deep Space Field Notes; please ask before reusing or redistributing the original image assets.
+
+## Capture orientation corrections
+
+The gallery and current poster generator share capture-specific presentation rotations in `app/capture-orientation.json`. Pelican's selected gallery edit is rotated 180°; its original pixels and comparison alignment references remain unchanged. The poster rotates the photograph before adding upright text. See `docs/PRINT_FULFILLMENT.md` for targeted regeneration and the supplier replacement gate.

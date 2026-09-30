@@ -355,28 +355,24 @@
       "object": "IC 5070",
       "title": "Pelican Nebula",
       "captureFile": "Stacked_184_IC 5070_10.0s_LP_20250915-221725_hand_processed.png",
-      "previewUrl": "/prints/pelican-nebula-ic-5070.jpg",
+      "previewUrl": "/prints/pelican-nebula-ic-5070.jpg?v=a82fb27bc02c",
       "layout": "edge-to-edge-v1",
-      "artworkSha256": "ca8137b4630add09e757ea2a7f157cf23f12055d3a171fe14eaaf3beca101755",
+      "artworkSha256": "a82fb27bc02c2819a5394bb7a9957f3c819c680fa7d1e1e624bc53fe96619095",
       "sourceSha256": "149292474a893a255c51f46d10e986367037048bcec096be203eee351296977c",
       "sourcePixels": [
         899,
         1736
       ],
       "nativeDpiAtPrintWidth": 74.9,
-      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/pelican-nebula-northern-michigan",
+      "checkoutUrl": null,
       "sampleApproved": false,
-      "artworkApproved": true,
-      "productPublished": true,
+      "artworkApproved": false,
+      "productPublished": false,
       "fourthwallProductId": "73b8d834-9c45-4850-a12b-9b1427a3789f",
       "fourthwallVariantId": "306651a3-fc01-443d-9da1-9682209af9f9",
       "fourthwallSlug": "pelican-nebula-northern-michigan",
-      "salesApproval": {
-        "approved": true,
-        "approvedAt": "2026-09-30",
-        "artworkSha256": "ca8137b4630add09e757ea2a7f157cf23f12055d3a171fe14eaaf3beca101755",
-        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
-      }
+      "salesApproval": null,
+      "displayRotationDegrees": 180
     },
     {
       "id": "pinwheel-galaxy-m-101",
