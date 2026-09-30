@@ -364,14 +364,19 @@
         1736
       ],
       "nativeDpiAtPrintWidth": 74.9,
-      "checkoutUrl": null,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/pelican-nebula-northern-michigan",
       "sampleApproved": false,
-      "artworkApproved": false,
-      "productPublished": false,
+      "artworkApproved": true,
+      "productPublished": true,
       "fourthwallProductId": "73b8d834-9c45-4850-a12b-9b1427a3789f",
       "fourthwallVariantId": "306651a3-fc01-443d-9da1-9682209af9f9",
       "fourthwallSlug": "pelican-nebula-northern-michigan",
-      "salesApproval": null,
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "a82fb27bc02c2819a5394bb7a9957f3c819c680fa7d1e1e624bc53fe96619095",
+        "reason": "Owner authorized correcting the existing public Pelican listing and gallery, preserving its $25 price. Supplier mockups visually reviewed and verified by readback."
+      },
       "displayRotationDegrees": 180
     },
     {
