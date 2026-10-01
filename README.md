@@ -116,7 +116,7 @@ The gallery remains hosted at `deepspace.brianjeanbuilds.com`. Fourthwall handle
 
 `npm run prints:prepare` generates web previews under `public/prints/` and concept masters under ignored `print_products/masters/edge-to-edge-v1/`. Original photos and legacy masters remain unchanged. Current sources supply only about 31–90 native pixels per inch at 12 inches wide. Exporting 3600 × 5400 pixels with 300 DPI metadata does not add captured detail. Brian authorized sales of this artwork before physical sample review for the October 1 demo; native image detail is unchanged by enlargement.
 
-The approved intended retail price is **$25 USD per print**; actual Fourthwall listings must be created and verified at that price.
+Brian approved **$20 USD per 12 × 18 print** on September 30, 2026, replacing the initial $25 price. Customer-paid shipping and tax are calculated by Fourthwall at checkout. Verify supplier prices against the shared gallery catalog when changing them.
 
 Each preview says **Print coming soon** until its catalog entry has a verified storefront origin and exact HTTPS product URL, reviewed artwork, a published Fourthwall listing, and either an approved physical sample or explicit owner launch approval bound to that artwork. Brian authorized the complete 33-print collection for sales before physical sample review on September 30 for the October 1 demo; the sample remains awaiting inspection. Only then does its purchase button lead to Fourthwall. Regenerating changed artwork clears those approvals and its product link. See **[Print fulfillment runbook](docs/PRINT_FULFILLMENT.md)** for activation and takedown.
 

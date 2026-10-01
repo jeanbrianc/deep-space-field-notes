@@ -9,7 +9,7 @@
     "density": 300,
     "layout": "edge-to-edge-v1",
     "retailPrice": {
-      "value": 25,
+      "value": 20,
       "currency": "USD"
     }
   },
