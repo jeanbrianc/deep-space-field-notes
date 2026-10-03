@@ -14,7 +14,8 @@
     "comparisons:sync": "node scripts/sync-comparisons.mjs",
     "prints:prepare": "node scripts/prepare-print-collection.mjs",
     "prints:prepare-legacy": "node scripts/prepare-print-products.mjs",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "captures:thumbnails": "node scripts/prepare-capture-thumbnails.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

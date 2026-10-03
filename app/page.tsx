@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { comparisons, type CaptureComparison } from "./comparisons";
-import { printProductForCapture } from "./print-catalog";
+import CaptureBrowser from "./capture-browser";
+import { printPreviewForCapture } from "./capture-search.mjs";
+import { printProducts, printProductForCapture } from "./print-catalog";
+import { captureIdForFile, captureFileForId, captureUrl, captureIdFromSearch } from "./capture-links.mjs";
 import { captureRotation } from "./capture-orientation.mjs";
 
 const imageFiles = [
@@ -185,6 +188,17 @@ function curatedImage(capture: Capture) {
   return comparison?.seestarImage ?? capture.file;
 }
 
+const browserCaptures = captures.map(capture => ({
+  id: captureIdForFile(capture.file)!, file: capture.file, title: capture.title,
+  object: capture.object,
+  date: capture.comparison?.curatedDefault === "nightskyai" ? formatObservationSpan(capture.comparison) : capture.date,
+  exposure: capture.exposure,
+  frames: capture.comparison?.curatedDefault === "nightskyai" ? capture.comparison.nightskyaiFrames : capture.frames,
+  source: curatedImage(capture),
+  rotation: captureRotation(capture.file, capture.comparison?.curatedDefault === "nightskyai" ? "nightskyai" : "seestar"),
+  printPreviewUrl: printPreviewForCapture(capture.file, printProducts),
+}));
+
 function skyPoint(capture: Capture) {
   if (capture.raDeg === null || capture.decDeg === null) return { x: 50, y: 35 };
   const x = 8 + (capture.raDeg / 360) * 84;
@@ -232,6 +246,13 @@ export default function Home() {
   const [targetIndex, setTargetIndex] = useState(initial);
   const [phase, setPhase] = useState<Phase>("focused");
   const [hasStarted, setHasStarted] = useState(false);
+  const [navigationReady, setNavigationReady] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState("");
+  const [shareFallback, setShareFallback] = useState(false);
+  const [shareOrigin, setShareOrigin] = useState("");
+  const navigationBusy = useRef(false);
+  const navigationGeneration = useRef(0);
+  const animationTimer = useRef<number | undefined>(undefined);
   const [galleryInView, setGalleryInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const galleryRef = useRef<HTMLElement | null>(null);
@@ -251,26 +272,82 @@ export default function Home() {
     ? comparison.nightskyaiFullFieldRatio
     : capture.imageRatio;
   const printProduct = printProductForCapture(capture.file);
+  const captureId = captureIdForFile(capture.file);
+  const canonicalPath = captureUrl(captureId);
+  const shareLink = `${shareOrigin}${canonicalPath}`;
 
-  const move = useCallback((delta: number) => {
-    if (!hasStarted || phase !== "focused") return;
-    const nextIndex = (index + delta + captures.length) % captures.length;
-    if (reducedMotion) {
+  const recordCapture = useCallback((nextIndex: number) => {
+    const path = captureUrl(captureIdForFile(captures[nextIndex].file));
+    if (`${window.location.pathname}${window.location.search}` !== path) window.history.pushState(null, "", path);
+    setShareFeedback("");
+    setShareFallback(false);
+  }, []);
+
+  useEffect(() => {
+    const restoreLocation = () => {
+      navigationGeneration.current += 1;
+      window.clearTimeout(animationTimer.current);
+      navigationBusy.current = false;
+      const id = captureIdFromSearch(window.location.search);
+      const file = captureFileForId(id);
+      const restored = file ? captures.findIndex(item => item.file === file) : initial;
+      const nextIndex = restored >= 0 ? restored : initial;
       setIndex(nextIndex);
       setOriginIndex(nextIndex);
       setTargetIndex(nextIndex);
+      setPhase("focused");
+      setHasStarted(!!file);
+      setShareFeedback("");
+      setShareFallback(false);
+      setShareOrigin(window.location.origin);
+      setNavigationReady(true);
+    };
+    restoreLocation();
+    window.addEventListener("popstate", restoreLocation);
+    return () => {
+      window.removeEventListener("popstate", restoreLocation);
+      window.clearTimeout(animationTimer.current);
+    };
+  }, [initial]);
+
+  const copyCaptureLink = async () => {
+    const generation = navigationGeneration.current;
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      if (generation !== navigationGeneration.current) return;
+      setShareFeedback("Capture link copied.");
+      setShareFallback(false);
+    } catch {
+      if (generation !== navigationGeneration.current) return;
+      setShareFeedback("Copy unavailable. Select the link below to copy it, or open Capture link.");
+      setShareFallback(true);
+    }
+  };
+
+  const move = useCallback((delta: number) => {
+    if (!hasStarted || phase !== "focused" || navigationBusy.current) return;
+    navigationBusy.current = true;
+    navigationGeneration.current += 1;
+    const nextIndex = (index + delta + captures.length) % captures.length;
+    if (reducedMotion) {
+      recordCapture(nextIndex);
+      setIndex(nextIndex);
+      setOriginIndex(nextIndex);
+      setTargetIndex(nextIndex);
+      queueMicrotask(() => { navigationBusy.current = false; });
       return;
     }
     setOriginIndex(index);
     setTargetIndex(nextIndex);
     setPhase("pullback");
-  }, [hasStarted, index, phase, reducedMotion]);
+  }, [hasStarted, index, phase, reducedMotion, recordCapture]);
 
   const beginExploring = useCallback(() => {
-    if (hasStarted) return;
+    if (hasStarted || !navigationReady) return;
+    recordCapture(index);
     setHasStarted(true);
     if (!reducedMotion) setPhase("arriving");
-  }, [hasStarted, reducedMotion]);
+  }, [hasStarted, navigationReady, index, reducedMotion, recordCapture]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -284,13 +361,19 @@ export default function Home() {
     if (phase === "focused") return;
     const nextPhase = phase === "pullback" ? "traveling" : phase === "traveling" ? "arriving" : "focused";
     const delay = phase === "traveling" ? 1150 : 720;
-    const timer = window.setTimeout(() => {
-      if (phase === "traveling") setIndex(targetIndex);
+    const generation = navigationGeneration.current;
+    animationTimer.current = window.setTimeout(() => {
+      if (generation !== navigationGeneration.current) return;
+      if (phase === "traveling") {
+        recordCapture(targetIndex);
+        setIndex(targetIndex);
+      }
+      if (nextPhase === "focused") navigationBusy.current = false;
       if (phase === "arriving") setOriginIndex(targetIndex);
       setPhase(nextPhase);
     }, delay);
-    return () => window.clearTimeout(timer);
-  }, [phase, targetIndex]);
+    return () => window.clearTimeout(animationTimer.current);
+  }, [phase, targetIndex, recordCapture]);
 
   useEffect(() => {
     const warm = [captures[(index + 1) % captures.length], captures[(index - 1 + captures.length) % captures.length]];
@@ -323,7 +406,7 @@ export default function Home() {
     const onKey = (event: KeyboardEvent) => {
       if (event.repeat || !galleryInView) return;
       const target = event.target instanceof HTMLElement ? event.target : null;
-      if (target?.closest("button, a, input, select, textarea, [contenteditable='true']")) return;
+      if (target?.closest("dialog, button, a, input, select, textarea, [contenteditable='true']")) return;
       if (event.key === "ArrowLeft") move(-1);
       if (event.key === "ArrowRight") move(1);
     };
@@ -356,7 +439,8 @@ export default function Home() {
         aria-label="Deep Space Field Notes observatory gallery"
         className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}${hasStarted ? "" : " gallery-awaiting-start"}`}
         onTouchStart={(event) => {
-          if (!hasStarted) return;
+          const target = event.target instanceof HTMLElement ? event.target : null;
+          if (!hasStarted || target?.closest("dialog, button, a, input, select, textarea, [contenteditable='true']")) return;
           touchPoint.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }}
         onTouchEnd={(event) => {
@@ -374,6 +458,12 @@ export default function Home() {
         <header className="site-header">
           <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
           <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
+          <CaptureBrowser captures={browserCaptures} ready={navigationReady} onOpen={() => {
+            navigationGeneration.current += 1;
+            window.clearTimeout(animationTimer.current);
+            navigationBusy.current = false;
+            setOriginIndex(index); setTargetIndex(index); setPhase("focused");
+          }} />
         </header>
 
         <section className={`portal-stage phase-${phase}${hasStarted ? "" : " stage-idle"}`} style={skyStyle} aria-busy={hasStarted && phase !== "focused"}>
@@ -388,7 +478,7 @@ export default function Home() {
           {!hasStarted && (
             <>
               <h1 className="visually-hidden">Deep Space Field Notes observatory</h1>
-              <button className="telescope-start" type="button" onClick={beginExploring} aria-label="Open the telescope on the Andromeda Galaxy">
+              <button className="telescope-start" type="button" onClick={beginExploring} disabled={!navigationReady} aria-label="Open the telescope on the Andromeda Galaxy">
                 <span>Begin with Andromeda</span>
                 <strong>Select the telescope</strong>
                 <i aria-hidden="true" />
@@ -433,6 +523,12 @@ export default function Home() {
               <p className="fact">{capture.fact}</p>
               <p className="filter-note">{capture.filter === "LP" ? "Light-pollution filter" : "IR-cut filter"} · Seestar field observation</p>
               <p className="projection-note">Sky travel follows catalog coordinates; the horizon scene is interpretive rather than a live time-and-direction calculation.</p>
+              <div className="capture-sharing">
+                <a href={canonicalPath}>Capture link</a>
+                <button type="button" onClick={copyCaptureLink}>Copy capture link</button>
+                <p role="status" aria-live="polite">{shareFeedback}</p>
+                {shareFallback && <label>Capture URL<input readOnly value={shareLink} onFocus={event => event.target.select()} /></label>}
+              </div>
               {printProduct && (
                 <a
                   className="print-link"
