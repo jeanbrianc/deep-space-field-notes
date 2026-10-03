@@ -29,7 +29,7 @@ test("gallery ships the complete capture collection and interactions", async () 
   assert.match(page, /Begin with Andromeda/);
   assert.match(page, /Select the telescope/);
   assert.match(page, /\{hasStarted && \(/);
-  assert.match(page, /if \(!hasStarted \|\| phase !== "focused"\) return/);
+  assert.match(page, /if \(!hasStarted \|\| phase !== "focused" \|\| navigationBusy\.current\) return/);
   assert.doesNotMatch(page, /EntrancePhase|entrancePhase|startExploring|Skip introduction|Start exploring|entry-method|observatory-entry/);
   assert.match(page, /contenteditable='true'/);
   assert.match(page, /aria-label="Deep Space Field Notes observatory gallery"/);

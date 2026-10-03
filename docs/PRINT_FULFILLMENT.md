@@ -57,3 +57,7 @@ Sources: [Transaction fees](https://help.fourthwall.com/frequently-asked-questio
 ## Disable sales
 
 Clear the product's `productPublished` or `artworkApproved`, or remove its checkout URL, then republish the gallery. The local preview remains, but purchasing stops. Also hide the product in Fourthwall if direct product-page sales should stop. A gallery-only takedown does not disable Fourthwall's own URL.
+
+## Returning from a poster preview
+
+The preview’s observatory link resolves the permanent capture identity from the exact catalog capture filename, returning to `/?capture=<id>`. Query parameters cannot change that destination. Existing poster IDs and supplier links remain unchanged. See [Capture links and navigation](CAPTURE_LINKS.md) for the identity contract and regression checks.
