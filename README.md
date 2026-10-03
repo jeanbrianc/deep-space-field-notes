@@ -129,6 +129,8 @@ Each preview says **Print coming soon** until its catalog entry has a verified s
 - **Mobile first, desktop considered.** Portrait captures remain immersive on a phone while the wider observatory view gives them presence on larger screens.
 - **Motion with restraint.** Sky travel adds a sense of place and respects reduced-motion preferences.
 
+The published-source baseline and release safeguards are recorded in [Live source reconciliation](docs/LIVE_SOURCE_RECONCILIATION.md).
+
 ## Run it locally
 
 Requires Node.js 22.13 or newer.

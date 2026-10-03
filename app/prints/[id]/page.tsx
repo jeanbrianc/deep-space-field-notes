@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { printProductForId } from '../../print-catalog';
 
@@ -6,7 +7,7 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
   const product = printProductForId(id);
   if (!product) notFound();
   return <main className="print-page">
-    <a className="print-back" href="/">← Back to the observatory</a>
+    <Link className="print-back" href="/">← Back to the observatory</Link>
     <div className="print-detail">
       <figure className="poster-preview"><img src={product.previewUrl} alt={`${product.title} poster with black field-note text panels`} /></figure>
       <section className="print-copy">
