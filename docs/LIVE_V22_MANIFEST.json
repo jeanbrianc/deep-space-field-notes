@@ -1,0 +1,566 @@
+{
+  "publishedVersion": 22,
+  "publishedSource": "2129e8e99b47353f2060bbefe906b97fac53b30d",
+  "githubBase": "8e01757d3802f4a0b79b3984b8812024da453dc0",
+  "protectedFiles": [
+    {
+      "path": "app/capture-orientation.json",
+      "gitBlob": "c68c88f8520565c66bae5a56c1a54998bb36ace8"
+    },
+    {
+      "path": "app/comparisons.generated.json",
+      "gitBlob": "f7f9a75e15c46f7415420b00ffac748cade2d502"
+    },
+    {
+      "path": "print_products/catalog.json",
+      "gitBlob": "8d491d1832f41cd1c72b2f46c3583a02a1be5833"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-080d62392ab5c3c36e18b2bc.jpg",
+      "gitBlob": "aeddd0c8a4eee4b3bfcfca54bf6458da98e7b40f"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-0924f1b666f527e90f2f961f.jpg",
+      "gitBlob": "a61a35798ce2128796f1eb41a5c40000eeab1f9a"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-0cfa907fdf6794655ffff280.jpg",
+      "gitBlob": "65d10ef427fb2d54c728c327178ec7310750aad3"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-1af505b15558555f93e30cf7.jpg",
+      "gitBlob": "0aa6b0cc50b8833833af28da2113b15c1e67209d"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-1fbe26570fb621f84e8b4934.jpg",
+      "gitBlob": "cb695bb965cab869ce81cd9f6f3f47242440e464"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-3cfbc3d981548dd348ce995f.jpg",
+      "gitBlob": "3cc199baaca3011861ad0a06d040b8945ab17f4f"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-41213dc7577c338ca3298908.jpg",
+      "gitBlob": "de5b612dfe227f39decff29d753027c9b366e304"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-479d934668bf3476f3bdfaf8.jpg",
+      "gitBlob": "fe4c0566b1584a7ba821aa06610c5c3798c1e324"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-5b16571c918dce20da225628.jpg",
+      "gitBlob": "a609672720102189d8db2f1819ce47484ed0419d"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-6d7bc1d3b213a8f5f13f3089.jpg",
+      "gitBlob": "79425838d93f9201a1f736931b9c16c4668042a2"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-6dcfe0455b6f697e22c16e86.jpg",
+      "gitBlob": "7bc809df11a548d3b22d84a447996ee843da0f9d"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-78a50a0a20233d62e0b91153.jpg",
+      "gitBlob": "3079cd8cde3b8a471219f3d4afa9f2d3751690fa"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-8648ab6861913f915163e4b2.jpg",
+      "gitBlob": "f14240668773e99083006a0c313f265c6633c541"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-87e6f33bbab83827850e6b01.jpg",
+      "gitBlob": "7a679c6f4d7c22b2698975701d9884d77c21ff46"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-8c814a4d23a565a2d01e9c08.jpg",
+      "gitBlob": "968e38d828f5b76f45946631c21422cf1526abec"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-93c9324b0d331475c807da4d.jpg",
+      "gitBlob": "f7a098baae64b3a58bb373e5d3fc41de6c1453e5"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-94db767b7b7ce4f41683188f.jpg",
+      "gitBlob": "dce6d72e5b0c36713a644d49018791c0c5941581"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-ae38612f22b6b5bfa1f47400.jpg",
+      "gitBlob": "454add66a809048a1ff71a6b610e415a466edd1b"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-b0d3097038799d4d76ba8e9e.jpg",
+      "gitBlob": "6504efbc9bd31a6840f879714e8f1938f473ffe5"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-be061b9afa3d015033a77a43.jpg",
+      "gitBlob": "b1029347239ab7948702a75303ff158f90eaaf2a"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-d2bba686008c726fcd228484.jpg",
+      "gitBlob": "cff7ed4cfb2c22ac47ab2c4e9dd2f3ae187996d0"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-d3c75a51ebb7ef058081abcc.jpg",
+      "gitBlob": "a4d0c86741d49ed85614d337c242912a3675395e"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-d571e08d24e668275cee5446.jpg",
+      "gitBlob": "86663c8cc90c6176484aac886a7fcfb49c7b995c"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-d57985adbd2b14416d24aa6f.jpg",
+      "gitBlob": "248acd439db5e592390cec2a2aad9bebed443476"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-e333555bb1e17f0a24bb4fde.jpg",
+      "gitBlob": "c175f6006969901d1a3743d003945f7cfc8a1395"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-e358def559ba3444c126a64f.jpg",
+      "gitBlob": "a1220da1a0830fd6a873ba4e7989b23940ef6f10"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-f41a4d989f70b41ab27046fa.jpg",
+      "gitBlob": "a0f54cd03722f4e383253653b6fd0db9ab1d09a7"
+    },
+    {
+      "path": "public/comparisons/aligned-v1/capture-feb4bdcc7a47682911e0a799.jpg",
+      "gitBlob": "9688056c9152c11751cde9f129e49cdb89bb2262"
+    },
+    {
+      "path": "public/comparisons/alignment-audit.json",
+      "gitBlob": "5ead4d480486791a226998576c95c4030ee0d322"
+    },
+    {
+      "path": "public/comparisons/images/capture-080d62392ab5c3c36e18b2bc.jpg",
+      "gitBlob": "0008f10776c9695af2088327b312dc55dcecc3b1"
+    },
+    {
+      "path": "public/comparisons/images/capture-0924f1b666f527e90f2f961f.jpg",
+      "gitBlob": "998068e783923cf5f52520a1863a4f53fa245738"
+    },
+    {
+      "path": "public/comparisons/images/capture-0cfa907fdf6794655ffff280.jpg",
+      "gitBlob": "c9b1781c1d37ffd822f5d696c45e2672c8299d0e"
+    },
+    {
+      "path": "public/comparisons/images/capture-1af505b15558555f93e30cf7.jpg",
+      "gitBlob": "5b731e020c55f015fe4e1120026aa07452f78c6e"
+    },
+    {
+      "path": "public/comparisons/images/capture-1fbe26570fb621f84e8b4934.jpg",
+      "gitBlob": "8f3effd133ba736cfcab686c8f0c863b9c3cce76"
+    },
+    {
+      "path": "public/comparisons/images/capture-3cfbc3d981548dd348ce995f.jpg",
+      "gitBlob": "5abfedbf2495bf2a0225b402a67706f8d861042d"
+    },
+    {
+      "path": "public/comparisons/images/capture-41213dc7577c338ca3298908.jpg",
+      "gitBlob": "428bf5d2dc13aec42faab5586aa2c2128461a55d"
+    },
+    {
+      "path": "public/comparisons/images/capture-479d934668bf3476f3bdfaf8.jpg",
+      "gitBlob": "5dcc785ac3f239f9276e341441bf686451a2ba89"
+    },
+    {
+      "path": "public/comparisons/images/capture-5b16571c918dce20da225628.jpg",
+      "gitBlob": "62176b16e6006e122395cad9e96cca2a1fa8c50f"
+    },
+    {
+      "path": "public/comparisons/images/capture-6d7bc1d3b213a8f5f13f3089.jpg",
+      "gitBlob": "aeb58b93ed07694479d751e0e2e2401fdd5d3878"
+    },
+    {
+      "path": "public/comparisons/images/capture-6dcfe0455b6f697e22c16e86.jpg",
+      "gitBlob": "b5735297de4344746201391a35702077c1739ee0"
+    },
+    {
+      "path": "public/comparisons/images/capture-78a50a0a20233d62e0b91153.jpg",
+      "gitBlob": "47801cfcf9825882d7902f6aa078439affbe0a2b"
+    },
+    {
+      "path": "public/comparisons/images/capture-8648ab6861913f915163e4b2.jpg",
+      "gitBlob": "701b71d5b373cb8348ede25defd86f11cbfc849d"
+    },
+    {
+      "path": "public/comparisons/images/capture-87e6f33bbab83827850e6b01.jpg",
+      "gitBlob": "17c60f79a5d70f58e5b1e77bad14a6faa6c6f661"
+    },
+    {
+      "path": "public/comparisons/images/capture-8c814a4d23a565a2d01e9c08.jpg",
+      "gitBlob": "dde3bccc25b0343fbe8c41965f92a9220bf8c173"
+    },
+    {
+      "path": "public/comparisons/images/capture-93c9324b0d331475c807da4d.jpg",
+      "gitBlob": "3154bc5790fc446ab1d12ddc8128d2c3002203b3"
+    },
+    {
+      "path": "public/comparisons/images/capture-94db767b7b7ce4f41683188f.jpg",
+      "gitBlob": "2d1fc809a6b25b75001b302327bdb1ae546a64cb"
+    },
+    {
+      "path": "public/comparisons/images/capture-ae38612f22b6b5bfa1f47400.jpg",
+      "gitBlob": "4566dc6f4640faa706ddfb562172538747b66172"
+    },
+    {
+      "path": "public/comparisons/images/capture-b0d3097038799d4d76ba8e9e.jpg",
+      "gitBlob": "602e36fe83f0275e7fd01567badd3fd0001bbfb2"
+    },
+    {
+      "path": "public/comparisons/images/capture-be061b9afa3d015033a77a43.jpg",
+      "gitBlob": "0413bcae0c572401ab620d380c5e9134e38cdf2a"
+    },
+    {
+      "path": "public/comparisons/images/capture-d2bba686008c726fcd228484.jpg",
+      "gitBlob": "727bd0ac358eddb90b4c9f86a73f9fa2a90afa6d"
+    },
+    {
+      "path": "public/comparisons/images/capture-d3c75a51ebb7ef058081abcc.jpg",
+      "gitBlob": "69bb6ca56e447558285792e82a234c59e6145a5f"
+    },
+    {
+      "path": "public/comparisons/images/capture-d571e08d24e668275cee5446.jpg",
+      "gitBlob": "8c7c3226f05f35bcbc9904e5643c57f7a86f9287"
+    },
+    {
+      "path": "public/comparisons/images/capture-d57985adbd2b14416d24aa6f.jpg",
+      "gitBlob": "2dbcbfe3f70c5bea0c3cebf6a7d88e3c075186af"
+    },
+    {
+      "path": "public/comparisons/images/capture-e333555bb1e17f0a24bb4fde.jpg",
+      "gitBlob": "25d77eb7bbf6d0e7a77405fd7e880dcbf577cfc5"
+    },
+    {
+      "path": "public/comparisons/images/capture-e358def559ba3444c126a64f.jpg",
+      "gitBlob": "91ec329996ac49e693f1413488c1d30f51842d08"
+    },
+    {
+      "path": "public/comparisons/images/capture-f41a4d989f70b41ab27046fa.jpg",
+      "gitBlob": "4fc88257b93befeb5388807da2b668355bc08a48"
+    },
+    {
+      "path": "public/comparisons/images/capture-feb4bdcc7a47682911e0a799.jpg",
+      "gitBlob": "bbca2fd71f237d435ae6c841393c9f85c0d75a6d"
+    },
+    {
+      "path": "public/comparisons/manifest.json",
+      "gitBlob": "e0a0cdcb475809cebe3e021e3908b5aeee12e62e"
+    },
+    {
+      "path": "public/images/Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
+      "gitBlob": "300af8cbbfb87b11053cd4dc17a3a3d9077640e3"
+    },
+    {
+      "path": "public/images/Stacked_114_IC 1318A_10.0s_LP_20250821-221720_cleaned.jpg",
+      "gitBlob": "e4a6e8deb4bdf1906a1c07c881db982c97691052"
+    },
+    {
+      "path": "public/images/Stacked_124_M 92_10.0s_IRCUT_20250915-210455_cleaned.jpg",
+      "gitBlob": "edf303e63fd1dc61b0ce2d0cd0349f7441b27d28"
+    },
+    {
+      "path": "public/images/Stacked_136_C 34_20.0s_IRCUT_20260924-001000_cleaned.jpg",
+      "gitBlob": "cee7986b443b924c04ad29c1dd74bf6b850f13d8"
+    },
+    {
+      "path": "public/images/Stacked_144_NGC 5907_10.0s_IRCUT_20250915-213552_cleaned.jpg",
+      "gitBlob": "bd450263df49888a88cb1308e01920b4499b6a40"
+    },
+    {
+      "path": "public/images/Stacked_144_SH2-142_20.0s_LP_20260923-230000_cleaned.jpg",
+      "gitBlob": "faee6ac7c623d1b29c0429ae572a210d73b87049"
+    },
+    {
+      "path": "public/images/Stacked_150_NGC 281_10.0s_LP_20251123-203503_cleaned.jpg",
+      "gitBlob": "ad26f47ddee7df013d163157e65e3982cba63b30"
+    },
+    {
+      "path": "public/images/Stacked_151_Unknown_10.0s_IRCUT_20250606-231447_cleaned.jpg",
+      "gitBlob": "eed31141f922b3a96afa0698cc3453e11fb8bc1b"
+    },
+    {
+      "path": "public/images/Stacked_153_IC 5146_10.0s_LP_20251009-214559_cleaned.jpg",
+      "gitBlob": "b9a02ffd0f714ec7b3d2832a2524ba8116f4db5b"
+    },
+    {
+      "path": "public/images/Stacked_159_M 27_10.0s_LP_20250916-211701_cleaned.jpg",
+      "gitBlob": "92f04c76403ca9e5f23b3ea496b229c9855d3ff1"
+    },
+    {
+      "path": "public/images/Stacked_162_M 81_10.0s_IRCUT_20260422-220323_hand_processed.jpg",
+      "gitBlob": "f0656ee5e8ba327010891bf10c5a7e29e3531199"
+    },
+    {
+      "path": "public/images/Stacked_163_C 27_10.0s_IRCUT_20260922-210708_cleaned.jpg",
+      "gitBlob": "7cf122c9bb22361c5dd4aff3dd6b4bec6764906c"
+    },
+    {
+      "path": "public/images/Stacked_184_IC 5070_10.0s_LP_20250915-221725_hand_processed.png",
+      "gitBlob": "a0edae74340190363018bf8115a871d481abdaa7"
+    },
+    {
+      "path": "public/images/Stacked_185_M 101_10.0s_IRCUT_20260602-230131_hand_processed.jpg",
+      "gitBlob": "03381e43e47ece6bb8e7abf84950523a5ea5800a"
+    },
+    {
+      "path": "public/images/Stacked_187_IC 1396A_10.0s_LP_20250821-225811_cleaned.jpg",
+      "gitBlob": "6165deddc7c3fb268bb1e8f7d42ba749ff0e7df5"
+    },
+    {
+      "path": "public/images/Stacked_189_NGC 6946_10.0s_IRCUT_20251009-211135_cleaned.jpg",
+      "gitBlob": "c89167701f4452cbf927051ed979f4fc439d6ff5"
+    },
+    {
+      "path": "public/images/Stacked_191_M 33_10.0s_IRCUT_20251123-200213_cleaned.jpg",
+      "gitBlob": "1897b497a1f3c32fe2975c90ca4b79898cab34ba"
+    },
+    {
+      "path": "public/images/Stacked_201_M 31_10.0s_IRCUT_20251118-191752_hand_processed.png",
+      "gitBlob": "beab1baff7753c4529ce783f1dcb2f15c63d92a9"
+    },
+    {
+      "path": "public/images/Stacked_223_M 42_10.0s_LP_20260407-215641_hand_processed.jpg",
+      "gitBlob": "40fc48168f6b880d0b60ea44b1b5d9696d9ff572"
+    },
+    {
+      "path": "public/images/Stacked_232_C 31_10.0s_IRCUT_20251223-211803_cleaned.jpg",
+      "gitBlob": "8909075a0fd1791b239df2a10cc3fcb130528948"
+    },
+    {
+      "path": "public/images/Stacked_240_NGC 6992_10.0s_LP_20250925-213428_cleaned.jpg",
+      "gitBlob": "b959e1af7129d068808004f7a3abbc8cdff7680d"
+    },
+    {
+      "path": "public/images/Stacked_240_NGC 7023_10.0s_IRCUT_20250925-222538_cleaned.jpg",
+      "gitBlob": "ea7d32ea6ab5f2ee3085ca015935bd581c377a5a"
+    },
+    {
+      "path": "public/images/Stacked_269_NGC 6888_10.0s_LP_20250831-224513_hand_processed.png",
+      "gitBlob": "7788521b75c01d0f60085690ebf990d0745895bc"
+    },
+    {
+      "path": "public/images/Stacked_277_NGC 6960_10.0s_LP_20260922-221229_cleaned.jpg",
+      "gitBlob": "77f94c46e4f82826feaf134a72b9f1742f594519"
+    },
+    {
+      "path": "public/images/Stacked_419_M 51_10.0s_IRCUT_20260728-233258_hand_processed.png",
+      "gitBlob": "e83694037728d95f3d4be72afcf070660d27bca4"
+    },
+    {
+      "path": "public/images/Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_hand_processed.png",
+      "gitBlob": "beab1baff7753c4529ce783f1dcb2f15c63d92a9"
+    },
+    {
+      "path": "public/images/Stacked_62_M 102_10.0s_IRCUT_20250606-223915_cleaned.jpg",
+      "gitBlob": "8034c6c6fdd0544ebddc433c541404e3f2394cb4"
+    },
+    {
+      "path": "public/images/Stacked_63_NGC 7331_10.0s_IRCUT_20251009-220208_cleaned.jpg",
+      "gitBlob": "f94e9e69c5f692c7de824567e7edc0630726632d"
+    },
+    {
+      "path": "public/images/Stacked_64_IC 1318B_10.0s_LP_20250925-203715_cleaned.jpg",
+      "gitBlob": "36b5b22b4d6bc7e9ec72a35c9370ff528398522d"
+    },
+    {
+      "path": "public/images/Stacked_71_M 13_10.0s_IRCUT_20260724-223913_cleaned.jpg",
+      "gitBlob": "c3599f474fa0eb7d15718ae98279d4e195b9fd6b"
+    },
+    {
+      "path": "public/images/Stacked_76_M 3_10.0s_IRCUT_20250717-224225_cleaned.jpg",
+      "gitBlob": "47ba4c66ec54c030a30a73bb1c6817feceb4f480"
+    },
+    {
+      "path": "public/images/Stacked_79_M 29_10.0s_IRCUT_20250925-225032_cleaned.jpg",
+      "gitBlob": "06ac827603d98fe26c19a6e47d3abd2ea6ce0327"
+    },
+    {
+      "path": "public/images/Stacked_86_M 97_10.0s_LP_20250524-232111_cleaned.jpg",
+      "gitBlob": "80802caac6c22877444f551c30d9a3c07fc25808"
+    },
+    {
+      "path": "public/prints/andromeda-galaxy-mosaic-m-31-mosaic.jpg",
+      "gitBlob": "07216a5e29a4ab8380a07977fe5c2bdeb54cd15e"
+    },
+    {
+      "path": "public/prints/andromeda-galaxy.jpg",
+      "gitBlob": "2b5003d33aea764ccd88e56a2b037e44310ebc62"
+    },
+    {
+      "path": "public/prints/bode-s-galaxy-m-81.jpg",
+      "gitBlob": "d8c87b1381bc88abd671c4b223257aaf1c3ad59e"
+    },
+    {
+      "path": "public/prints/butterfly-nebula-ic-1318b.jpg",
+      "gitBlob": "be0c27782e849a995d5a74720ca0afa94a5f9bf3"
+    },
+    {
+      "path": "public/prints/cocoon-nebula-ic-5146.jpg",
+      "gitBlob": "27d76f02f5935ef27cbee8e907e2ac185d2bc36b"
+    },
+    {
+      "path": "public/prints/cooling-tower-cluster-m-29.jpg",
+      "gitBlob": "6999877eb79e64ab2eb3bb347842de1465ee5a01"
+    },
+    {
+      "path": "public/prints/crescent-nebula-c-27.jpg",
+      "gitBlob": "bfd99432eb2e5fd49e17aa749f7350cd8b2414df"
+    },
+    {
+      "path": "public/prints/crescent-nebula-ngc-6888.jpg",
+      "gitBlob": "67eaa2ac8a9425aeda366d3eccbc78954c74a948"
+    },
+    {
+      "path": "public/prints/dumbbell-nebula-m-27.jpg",
+      "gitBlob": "e562f6f78b737ccf4304d2f0ce03838c55926df0"
+    },
+    {
+      "path": "public/prints/eastern-veil-nebula.jpg",
+      "gitBlob": "dd421f92cf78c6aa74220fbfecd73a72a824efda"
+    },
+    {
+      "path": "public/prints/elephant-trunk-nebula-ic-1396a.jpg",
+      "gitBlob": "1c24552942fadc1d6762533cbe93d32bae84ede1"
+    },
+    {
+      "path": "public/prints/fireworks-galaxy-ngc-6946.jpg",
+      "gitBlob": "4f03691b451175101e2ddf17615d9209bb52f4b8"
+    },
+    {
+      "path": "public/prints/flaming-star-nebula-c-31.jpg",
+      "gitBlob": "86480166a96e2e389187d23ea84d241086d26895"
+    },
+    {
+      "path": "public/prints/gamma-cygni-nebula-ic-1318a.jpg",
+      "gitBlob": "5631426708e420f393bec3a3157315513b2be7ec"
+    },
+    {
+      "path": "public/prints/great-hercules-cluster-m-13.jpg",
+      "gitBlob": "e9a4ab144654dce8134f97ee8e377797dfc75d43"
+    },
+    {
+      "path": "public/prints/iris-nebula-ngc-7023.jpg",
+      "gitBlob": "855b3f8d3b6bd716043efd625b65229772b6f789"
+    },
+    {
+      "path": "public/prints/jellyfish-nebula-ic-443.jpg",
+      "gitBlob": "543390bb4a122b4ca37088462610812f2cd6becc"
+    },
+    {
+      "path": "public/prints/messier-3-m-3.jpg",
+      "gitBlob": "304dda61b2d53a85756fad66058bf1387626d508"
+    },
+    {
+      "path": "public/prints/messier-92-m-92.jpg",
+      "gitBlob": "41ba0ecefe90f35c6ce5757042e4a839b8b63332"
+    },
+    {
+      "path": "public/prints/ngc-7331-ngc-7331.jpg",
+      "gitBlob": "63bcf23031e93ae208dd55bb48ce3a1442e08f7d"
+    },
+    {
+      "path": "public/prints/orion-nebula.jpg",
+      "gitBlob": "597ad6af9ada31e35e7aed1e2276ee758383c804"
+    },
+    {
+      "path": "public/prints/owl-nebula-m-97.jpg",
+      "gitBlob": "08cce0364d67baa6986b6b66b69ff618453be21b"
+    },
+    {
+      "path": "public/prints/pacman-nebula-ngc-281.jpg",
+      "gitBlob": "7ffce9e40e68b3fcada4daea635fae5fe3e7d041"
+    },
+    {
+      "path": "public/prints/pelican-nebula-ic-5070.jpg",
+      "gitBlob": "56f015375a52d57978409070c40624eefd1c7be7"
+    },
+    {
+      "path": "public/prints/pinwheel-galaxy-m-101.jpg",
+      "gitBlob": "09e26db5b1d26bd5d922e00639a256ec4cf420d8"
+    },
+    {
+      "path": "public/prints/spindle-galaxy-m-102.jpg",
+      "gitBlob": "8c2c7724a9a9e44b674f4c9754564a3d257af22f"
+    },
+    {
+      "path": "public/prints/splinter-galaxy-ngc-5907.jpg",
+      "gitBlob": "779cb4d123c556c23fe81ffbbc081127ec7dd990"
+    },
+    {
+      "path": "public/prints/triangulum-galaxy-m-33.jpg",
+      "gitBlob": "271923c1c4c6a3c9f2f95a746e6ddb4e40d63629"
+    },
+    {
+      "path": "public/prints/uncharted-field-unknown.jpg",
+      "gitBlob": "8534c12363a43fa057e7e4d6f5f42acc7cca53b7"
+    },
+    {
+      "path": "public/prints/western-veil-nebula-c-34.jpg",
+      "gitBlob": "b92fa52a4a1660330a7875c2dc62463fd19be113"
+    },
+    {
+      "path": "public/prints/western-veil-nebula.jpg",
+      "gitBlob": "eea58afdf48803130e83469c6943dc6d0a5e9980"
+    },
+    {
+      "path": "public/prints/whirlpool-galaxy-m-51.jpg",
+      "gitBlob": "d8fd325f246bbdbf86b40b6999598f1da119c918"
+    },
+    {
+      "path": "public/prints/wizard-nebula-sh2-142.jpg",
+      "gitBlob": "8193c1c7704f4df470b9eb5f1e55c0e88cbdf910"
+    }
+  ],
+  "diff": [
+    "M\t.gitignore",
+    "M\tREADME.md",
+    "A\tapp/capture-orientation.json",
+    "A\tapp/capture-orientation.mjs",
+    "M\tapp/globals.css",
+    "M\tapp/page.tsx",
+    "M\tapp/print-catalog.ts",
+    "A\tapp/print-products.mjs",
+    "A\tapp/prints/[id]/page.tsx",
+    "M\tdocs/PRINT_FULFILLMENT.md",
+    "M\tpackage.json",
+    "M\tprint_products/catalog.json",
+    "A\tpublic/prints/andromeda-galaxy-mosaic-m-31-mosaic.jpg",
+    "A\tpublic/prints/andromeda-galaxy.jpg",
+    "A\tpublic/prints/bode-s-galaxy-m-81.jpg",
+    "A\tpublic/prints/butterfly-nebula-ic-1318b.jpg",
+    "A\tpublic/prints/cocoon-nebula-ic-5146.jpg",
+    "A\tpublic/prints/cooling-tower-cluster-m-29.jpg",
+    "A\tpublic/prints/crescent-nebula-c-27.jpg",
+    "A\tpublic/prints/crescent-nebula-ngc-6888.jpg",
+    "A\tpublic/prints/dumbbell-nebula-m-27.jpg",
+    "A\tpublic/prints/eastern-veil-nebula.jpg",
+    "A\tpublic/prints/elephant-trunk-nebula-ic-1396a.jpg",
+    "A\tpublic/prints/fireworks-galaxy-ngc-6946.jpg",
+    "A\tpublic/prints/flaming-star-nebula-c-31.jpg",
+    "A\tpublic/prints/gamma-cygni-nebula-ic-1318a.jpg",
+    "A\tpublic/prints/great-hercules-cluster-m-13.jpg",
+    "A\tpublic/prints/iris-nebula-ngc-7023.jpg",
+    "A\tpublic/prints/jellyfish-nebula-ic-443.jpg",
+    "A\tpublic/prints/messier-3-m-3.jpg",
+    "A\tpublic/prints/messier-92-m-92.jpg",
+    "A\tpublic/prints/ngc-7331-ngc-7331.jpg",
+    "A\tpublic/prints/orion-nebula.jpg",
+    "A\tpublic/prints/owl-nebula-m-97.jpg",
+    "A\tpublic/prints/pacman-nebula-ngc-281.jpg",
+    "A\tpublic/prints/pelican-nebula-ic-5070.jpg",
+    "A\tpublic/prints/pinwheel-galaxy-m-101.jpg",
+    "A\tpublic/prints/spindle-galaxy-m-102.jpg",
+    "A\tpublic/prints/splinter-galaxy-ngc-5907.jpg",
+    "A\tpublic/prints/triangulum-galaxy-m-33.jpg",
+    "A\tpublic/prints/uncharted-field-unknown.jpg",
+    "A\tpublic/prints/western-veil-nebula-c-34.jpg",
+    "A\tpublic/prints/western-veil-nebula.jpg",
+    "A\tpublic/prints/whirlpool-galaxy-m-51.jpg",
+    "A\tpublic/prints/wizard-nebula-sh2-142.jpg",
+    "A\tscripts/prepare-print-collection.mjs",
+    "A\ttests/pelican-orientation.test.mjs",
+    "A\ttests/print-products.test.mjs",
+    "M\ttests/rendered-html.test.mjs"
+  ]
+}

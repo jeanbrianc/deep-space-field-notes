@@ -1,41 +1,945 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "provider": "fourthwall",
   "product": {
     "kind": "matte-poster",
-    "sizeLabel": "12 × 18 in matte poster",
+    "sizeLabel": "12 \u00d7 18 in matte poster",
     "widthPx": 3600,
     "heightPx": 5400,
-    "density": 300
+    "density": 300,
+    "layout": "edge-to-edge-v1",
+    "retailPrice": {
+      "value": 20,
+      "currency": "USD"
+    }
   },
   "products": [
+    {
+      "id": "jellyfish-nebula-ic-443",
+      "object": "IC 443",
+      "title": "Jellyfish Nebula",
+      "captureFile": "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
+      "previewUrl": "/prints/jellyfish-nebula-ic-443.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "19077a2e8e3e92d78109655f173cf80ffab2c2f1a2f7e52d1f01691773783b01",
+      "sourceSha256": "cd3492f88489070a9059712a4a5371645ca6bfa3aa1d384c2420b284c889f924",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/jellyfish-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "26e79421-21d6-492d-8771-7f0eb82b004a",
+      "fourthwallVariantId": "e2ce7d39-92c4-43c8-b538-6197663974c5",
+      "fourthwallSlug": "jellyfish-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "19077a2e8e3e92d78109655f173cf80ffab2c2f1a2f7e52d1f01691773783b01",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "gamma-cygni-nebula-ic-1318a",
+      "object": "IC 1318A",
+      "title": "Gamma Cygni Nebula",
+      "captureFile": "Stacked_114_IC 1318A_10.0s_LP_20250821-221720_cleaned.jpg",
+      "previewUrl": "/prints/gamma-cygni-nebula-ic-1318a.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "4e551466fc3251ef05a4a6798390ed734c4a908d01bb991daf5b3a5a115c7626",
+      "sourceSha256": "058d17dbf2ce933c3d05fe98ca9baa9b4a174ef5917ab07836c7c31d23687868",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/gamma-cygni-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "c89172f8-ad65-4b2e-bcca-8c0ac7cde827",
+      "fourthwallVariantId": "0a31d15c-2fbc-44de-9b82-82f998c42cb4",
+      "fourthwallSlug": "gamma-cygni-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "4e551466fc3251ef05a4a6798390ed734c4a908d01bb991daf5b3a5a115c7626",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "messier-92-m-92",
+      "object": "M 92",
+      "title": "Messier 92",
+      "captureFile": "Stacked_124_M 92_10.0s_IRCUT_20250915-210455_cleaned.jpg",
+      "previewUrl": "/prints/messier-92-m-92.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "8ca590a69692ce6af2e5ed5f5afc4c3d9e8adb65ae7efffe4765d0f87afb0922",
+      "sourceSha256": "ed8a9fdd7062c67211939875759b9527a8d714d1e1035403e720bef3cc46dd26",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/messier-92-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "093545bb-02ac-4ce7-a33b-30acc38e5820",
+      "fourthwallVariantId": "7b778dc3-dade-4f0b-ae3d-22354f3956b3",
+      "fourthwallSlug": "messier-92-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "8ca590a69692ce6af2e5ed5f5afc4c3d9e8adb65ae7efffe4765d0f87afb0922",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "western-veil-nebula-c-34",
+      "object": "C 34",
+      "title": "Western Veil Nebula",
+      "captureFile": "Stacked_136_C 34_20.0s_IRCUT_20260924-001000_cleaned.jpg",
+      "previewUrl": "/prints/western-veil-nebula-c-34.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "08cadc6db010890eb194a915715a58c6cb77f475267ae422c605c50b923d3aaa",
+      "sourceSha256": "4bfd9a0688e408db2fdbbd14e349eff4dc00bf9290803993140864136aa76b81",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/western-veil-nebula-c-34-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "7acc90ba-abe2-43b2-85ae-4506472efcb9",
+      "fourthwallVariantId": "cf580edb-c620-4a2b-893a-bedaf6560ac2",
+      "fourthwallSlug": "western-veil-nebula-c-34-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "08cadc6db010890eb194a915715a58c6cb77f475267ae422c605c50b923d3aaa",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "splinter-galaxy-ngc-5907",
+      "object": "NGC 5907",
+      "title": "Splinter Galaxy",
+      "captureFile": "Stacked_144_NGC 5907_10.0s_IRCUT_20250915-213552_cleaned.jpg",
+      "previewUrl": "/prints/splinter-galaxy-ngc-5907.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "0135ef7247256e5c83a2c06cae0a4f83e0b869ba17c05c5b58d3f042e75d8045",
+      "sourceSha256": "af95fa8454fda208666e42a7d8577c25378504422a4e721ad0a3104797e9299b",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/splinter-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "89d1f0e5-125d-41b7-83fc-04906ae78b0b",
+      "fourthwallVariantId": "eceafbb3-9816-4773-9227-bce16aa39733",
+      "fourthwallSlug": "splinter-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "0135ef7247256e5c83a2c06cae0a4f83e0b869ba17c05c5b58d3f042e75d8045",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "wizard-nebula-sh2-142",
+      "object": "SH2-142",
+      "title": "Wizard Nebula",
+      "captureFile": "Stacked_144_SH2-142_20.0s_LP_20260923-230000_cleaned.jpg",
+      "previewUrl": "/prints/wizard-nebula-sh2-142.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "bec8524ac10989a896102dc5918515ac885d0af5923615f44533f2483a23604d",
+      "sourceSha256": "759cd21915c48428b4645340f707ea95c89bb6980f51d93c08229e10e55ee93a",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/wizard-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "c9154690-0830-473f-86a7-c4a1c14e4156",
+      "fourthwallVariantId": "7844b33d-214f-40b7-ae4d-3dd6beeb7717",
+      "fourthwallSlug": "wizard-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "bec8524ac10989a896102dc5918515ac885d0af5923615f44533f2483a23604d",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "pacman-nebula-ngc-281",
+      "object": "NGC 281",
+      "title": "Pacman Nebula",
+      "captureFile": "Stacked_150_NGC 281_10.0s_LP_20251123-203503_cleaned.jpg",
+      "previewUrl": "/prints/pacman-nebula-ngc-281.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "8994f8e9e90a19a512463002e256cfe3b4824f81baa9c060439012f177e806a9",
+      "sourceSha256": "503ad6c999c4626970dddb882e0d576f4b3a24cafcc2588ecef2cd446609a763",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/pacman-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "ae1ae901-4b45-4d44-a5f6-52238cc9570e",
+      "fourthwallVariantId": "a00b00bd-f2be-452e-aed7-830a375b09de",
+      "fourthwallSlug": "pacman-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "8994f8e9e90a19a512463002e256cfe3b4824f81baa9c060439012f177e806a9",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "uncharted-field-unknown",
+      "object": "Unknown",
+      "title": "Uncharted Field",
+      "captureFile": "Stacked_151_Unknown_10.0s_IRCUT_20250606-231447_cleaned.jpg",
+      "previewUrl": "/prints/uncharted-field-unknown.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "d35eee000ac21bfee5a2ff1444ae6f3f29e681358116facc3074efd8baf7ecff",
+      "sourceSha256": "7a348d40c88252ef45b13fe9d3e27cb06a8f4cd8bcd1ea39a0634a7abac52253",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/uncharted-field-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "39fe0700-dd03-4153-98b9-d5e62aedb550",
+      "fourthwallVariantId": "55c272cd-efd5-44d0-a383-921b94b63881",
+      "fourthwallSlug": "uncharted-field-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "d35eee000ac21bfee5a2ff1444ae6f3f29e681358116facc3074efd8baf7ecff",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "cocoon-nebula-ic-5146",
+      "object": "IC 5146",
+      "title": "Cocoon Nebula",
+      "captureFile": "Stacked_153_IC 5146_10.0s_LP_20251009-214559_cleaned.jpg",
+      "previewUrl": "/prints/cocoon-nebula-ic-5146.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "a47c808d0ff0e3bf1a559adb2c4b74289f6efe31c89631be45da407c3ad078d5",
+      "sourceSha256": "a062340b4e5029e090a81f8777716f1d762cb4586eed6cd7f1c166b2fd6f0291",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/cocoon-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "21f059bf-4771-419f-8a13-f7a5a32ed303",
+      "fourthwallVariantId": "3fc43749-b084-44b0-8e39-06b7da33ac5b",
+      "fourthwallSlug": "cocoon-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "a47c808d0ff0e3bf1a559adb2c4b74289f6efe31c89631be45da407c3ad078d5",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "dumbbell-nebula-m-27",
+      "object": "M 27",
+      "title": "Dumbbell Nebula",
+      "captureFile": "Stacked_159_M 27_10.0s_LP_20250916-211701_cleaned.jpg",
+      "previewUrl": "/prints/dumbbell-nebula-m-27.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "9d9da9f18e8b9b17f1a19b8f546596d15ad1174b72c9124c41b8c7c4e41d7219",
+      "sourceSha256": "e53e7c41d2489bfd7da1354f7760d53551490cf5ee1e636c8e5a99f5cc5f0b3f",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/dumbbell-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "aa032256-106a-4129-94e9-429747ddea20",
+      "fourthwallVariantId": "7e574dc3-b2ba-4a7d-b80e-6c9823eb0b4f",
+      "fourthwallSlug": "dumbbell-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "9d9da9f18e8b9b17f1a19b8f546596d15ad1174b72c9124c41b8c7c4e41d7219",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "bode-s-galaxy-m-81",
+      "object": "M 81",
+      "title": "Bode\u2019s Galaxy",
+      "captureFile": "Stacked_162_M 81_10.0s_IRCUT_20260422-220323_hand_processed.jpg",
+      "previewUrl": "/prints/bode-s-galaxy-m-81.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "8234508a525faef5adceb773d99e7c7e85acfd2469d6208145dadc6a956cf6a4",
+      "sourceSha256": "6940a3caf8eb4cee9932ec1763a002a60ca6b9bfba62155a166e8ba004a929ad",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/bodes-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "67533b29-c61c-438c-9692-a8190f62476a",
+      "fourthwallVariantId": "073e05a1-10bc-4b57-9529-f47e4bc989ca",
+      "fourthwallSlug": "bodes-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "8234508a525faef5adceb773d99e7c7e85acfd2469d6208145dadc6a956cf6a4",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "crescent-nebula-c-27",
+      "object": "C 27",
+      "title": "Crescent Nebula",
+      "captureFile": "Stacked_163_C 27_10.0s_IRCUT_20260922-210708_cleaned.jpg",
+      "previewUrl": "/prints/crescent-nebula-c-27.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "01aa728f9076c78926c687ef0cdb5e2af4c7beb4e9d9597bd7c5d121bb4ec34c",
+      "sourceSha256": "ec1ccfaf338e4cb36d58528609f92d45143c96fa0dc6aabf2066ddba6acf3eee",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/crescent-nebula-c-27-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "e00b419d-de2f-46b2-a001-230242847e3a",
+      "fourthwallVariantId": "9cf93aa9-0e25-4c35-ab50-804b6b38ff38",
+      "fourthwallSlug": "crescent-nebula-c-27-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "01aa728f9076c78926c687ef0cdb5e2af4c7beb4e9d9597bd7c5d121bb4ec34c",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "pelican-nebula-ic-5070",
+      "object": "IC 5070",
+      "title": "Pelican Nebula",
+      "captureFile": "Stacked_184_IC 5070_10.0s_LP_20250915-221725_hand_processed.png",
+      "previewUrl": "/prints/pelican-nebula-ic-5070.jpg?v=a82fb27bc02c",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "a82fb27bc02c2819a5394bb7a9957f3c819c680fa7d1e1e624bc53fe96619095",
+      "sourceSha256": "149292474a893a255c51f46d10e986367037048bcec096be203eee351296977c",
+      "sourcePixels": [
+        899,
+        1736
+      ],
+      "nativeDpiAtPrintWidth": 74.9,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/pelican-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "73b8d834-9c45-4850-a12b-9b1427a3789f",
+      "fourthwallVariantId": "306651a3-fc01-443d-9da1-9682209af9f9",
+      "fourthwallSlug": "pelican-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "a82fb27bc02c2819a5394bb7a9957f3c819c680fa7d1e1e624bc53fe96619095",
+        "reason": "Owner authorized correcting the existing public Pelican listing and gallery, preserving its $25 price. Supplier mockups visually reviewed and verified by readback."
+      },
+      "displayRotationDegrees": 180
+    },
+    {
+      "id": "pinwheel-galaxy-m-101",
+      "object": "M 101",
+      "title": "Pinwheel Galaxy",
+      "captureFile": "Stacked_185_M 101_10.0s_IRCUT_20260602-230131_hand_processed.jpg",
+      "previewUrl": "/prints/pinwheel-galaxy-m-101.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "024c42339169842faee107b2657800b51fc3efd48a73b6831d81e85d051cb6aa",
+      "sourceSha256": "4651996ffaba445e791a52ec321cfe1d7da169372d8376381fd7970526a91081",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/pinwheel-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "01fc6d98-e357-439b-bede-49eb55927c9b",
+      "fourthwallVariantId": "938bddbe-538d-418e-b3bc-6bae51917159",
+      "fourthwallSlug": "pinwheel-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "024c42339169842faee107b2657800b51fc3efd48a73b6831d81e85d051cb6aa",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "elephant-trunk-nebula-ic-1396a",
+      "object": "IC 1396A",
+      "title": "Elephant Trunk Nebula",
+      "captureFile": "Stacked_187_IC 1396A_10.0s_LP_20250821-225811_cleaned.jpg",
+      "previewUrl": "/prints/elephant-trunk-nebula-ic-1396a.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "11d9e1140a624d8d26d8a0c328ebc873c7eced44870a8edacedbf54b5fed6acc",
+      "sourceSha256": "928b1d220303d640408a89869140438514ea10d7240a985269b87862fadf9443",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/elephant-trunk-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "894bcb01-a3a6-48dd-905e-f532075d81e8",
+      "fourthwallVariantId": "e78dc01c-8247-4c0b-aa0c-140fa65f40bb",
+      "fourthwallSlug": "elephant-trunk-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "11d9e1140a624d8d26d8a0c328ebc873c7eced44870a8edacedbf54b5fed6acc",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "fireworks-galaxy-ngc-6946",
+      "object": "NGC 6946",
+      "title": "Fireworks Galaxy",
+      "captureFile": "Stacked_189_NGC 6946_10.0s_IRCUT_20251009-211135_cleaned.jpg",
+      "previewUrl": "/prints/fireworks-galaxy-ngc-6946.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "cbaeb867dae05e836fbb66f7022da0e175dab1393aa025087cf8ea813dc26ac3",
+      "sourceSha256": "06746c5a749c8661c736fcbf8c25c5c3276273394f001afdc901a3150090ed0a",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/fireworks-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "ce99906b-e10f-4c23-b42c-714c435b5385",
+      "fourthwallVariantId": "33e01351-99da-4d6b-a32a-eb69b29d397b",
+      "fourthwallSlug": "fireworks-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "cbaeb867dae05e836fbb66f7022da0e175dab1393aa025087cf8ea813dc26ac3",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "triangulum-galaxy-m-33",
+      "object": "M 33",
+      "title": "Triangulum Galaxy",
+      "captureFile": "Stacked_191_M 33_10.0s_IRCUT_20251123-200213_cleaned.jpg",
+      "previewUrl": "/prints/triangulum-galaxy-m-33.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "99a3f5d0ae6fc911fc2fb9f0447234e95407ad2c27d86d3837ec25402f0e9185",
+      "sourceSha256": "34f6ddb2539047d2e1c8121e698c2908fd796be56169391ba612f7798131e08e",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/triangulum-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "6fd68d80-6494-4b72-a516-10de530fd05f",
+      "fourthwallVariantId": "6d62225d-46f4-4ebd-a307-5b77c4fb8fd8",
+      "fourthwallSlug": "triangulum-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "99a3f5d0ae6fc911fc2fb9f0447234e95407ad2c27d86d3837ec25402f0e9185",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
     {
       "id": "andromeda-galaxy",
       "object": "M 31",
       "title": "Andromeda Galaxy",
-      "checkoutUrl": null,
-      "sampleApproved": false
+      "captureFile": "Stacked_201_M 31_10.0s_IRCUT_20251118-191752_hand_processed.png",
+      "previewUrl": "/prints/andromeda-galaxy.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "fa6ac2e92a278dd0f341a704f25ff56c5cdcdc73081225230e6a3b00587c0cc7",
+      "sourceSha256": "c706802fe546f92b62facb7bac5939cf259dc15cb99a4ee713a030c2ff309173",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/andromeda-galaxy-field-notes-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "33a2f11a-53e2-4c9d-a1a5-094bd483b6df",
+      "fourthwallVariantId": "72ea9f07-901b-4576-af34-fbf9d6a322d6",
+      "fourthwallSlug": "andromeda-galaxy-field-notes-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "fa6ac2e92a278dd0f341a704f25ff56c5cdcdc73081225230e6a3b00587c0cc7",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
     },
     {
       "id": "orion-nebula",
       "object": "M 42",
       "title": "Orion Nebula",
-      "checkoutUrl": null,
-      "sampleApproved": false
+      "captureFile": "Stacked_223_M 42_10.0s_LP_20260407-215641_hand_processed.jpg",
+      "previewUrl": "/prints/orion-nebula.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "422061d12fc7cdd315e71e6686618de4b330f5f91fb17907bdba00d51101d5b2",
+      "sourceSha256": "ad88161d3098cb282df15533b22788c3dc5fc588ccc702eb673e6d8cce34c2e1",
+      "sourcePixels": [
+        846,
+        1814
+      ],
+      "nativeDpiAtPrintWidth": 70.5,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/orion-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "356852cd-5c59-4148-b076-a150e9ba8920",
+      "sampleStatus": "ordered",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "422061d12fc7cdd315e71e6686618de4b330f5f91fb17907bdba00d51101d5b2",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      },
+      "fourthwallVariantId": "6db1f191-6889-4227-9d78-99aeb01cc156",
+      "fourthwallSlug": "orion-nebula-northern-michigan"
+    },
+    {
+      "id": "flaming-star-nebula-c-31",
+      "object": "C 31",
+      "title": "Flaming Star Nebula",
+      "captureFile": "Stacked_232_C 31_10.0s_IRCUT_20251223-211803_cleaned.jpg",
+      "previewUrl": "/prints/flaming-star-nebula-c-31.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "3ea49740c45df55b5b021abe4477ef727caf65ed67ab5ffd506c03c37179e6e1",
+      "sourceSha256": "ae2405633090d6fdfa28317b52201e882bdd3557138b1e8331069053b3fdf408",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/flaming-star-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "4d7ca09e-fa71-435a-90c3-c68c7ab5dfdd",
+      "fourthwallVariantId": "583f4f1c-b4d4-4783-bcb4-4542baa66108",
+      "fourthwallSlug": "flaming-star-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "3ea49740c45df55b5b021abe4477ef727caf65ed67ab5ffd506c03c37179e6e1",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
     },
     {
       "id": "eastern-veil-nebula",
       "object": "NGC 6992",
       "title": "Eastern Veil Nebula",
-      "checkoutUrl": null,
-      "sampleApproved": false
+      "captureFile": "Stacked_240_NGC 6992_10.0s_LP_20250925-213428_cleaned.jpg",
+      "previewUrl": "/prints/eastern-veil-nebula.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "69d62f93efbe013b5de10850dd9bfcdf1625d5b119b933e29aa41c8f9bbb142f",
+      "sourceSha256": "161c73fcad21e13724f51f62020cccbc5bced05903745a41355d8762902e47f2",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/eastern-veil-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "cede6a37-8dc8-437a-845b-670050838193",
+      "fourthwallVariantId": "75f707e4-a4e5-4008-8a8a-ed1a828cb92c",
+      "fourthwallSlug": "eastern-veil-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "69d62f93efbe013b5de10850dd9bfcdf1625d5b119b933e29aa41c8f9bbb142f",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "iris-nebula-ngc-7023",
+      "object": "NGC 7023",
+      "title": "Iris Nebula",
+      "captureFile": "Stacked_240_NGC 7023_10.0s_IRCUT_20250925-222538_cleaned.jpg",
+      "previewUrl": "/prints/iris-nebula-ngc-7023.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "aefd407c8264621eb3905fcd9f0bb01d83e4a7277a2c222109aebe70de066dac",
+      "sourceSha256": "e9cbad8d36ec08981303ea5714584b38980c849a58626adcb9a798d01206a645",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/iris-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "76c58490-6cfd-46bf-b86c-fc9192735ca9",
+      "fourthwallVariantId": "2883df36-7855-4d20-8389-374ceda87468",
+      "fourthwallSlug": "iris-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "aefd407c8264621eb3905fcd9f0bb01d83e4a7277a2c222109aebe70de066dac",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "crescent-nebula-ngc-6888",
+      "object": "NGC 6888",
+      "title": "Crescent Nebula",
+      "captureFile": "Stacked_269_NGC 6888_10.0s_LP_20250831-224513_hand_processed.png",
+      "previewUrl": "/prints/crescent-nebula-ngc-6888.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "5c178affcf9933c72a6e0cf964a4c403f9413be6b68e7c24522cac36fdb2581e",
+      "sourceSha256": "43799df69511bf391fa151e987d7e34a4194952338598f56a88338ebe5379876",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/crescent-nebula-ngc-6888-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "27aaebba-5107-45eb-aea9-00feee1aed22",
+      "fourthwallVariantId": "c1c406d0-7689-4f56-849b-2f9d0cf7dd01",
+      "fourthwallSlug": "crescent-nebula-ngc-6888-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "5c178affcf9933c72a6e0cf964a4c403f9413be6b68e7c24522cac36fdb2581e",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
     },
     {
       "id": "western-veil-nebula",
       "object": "NGC 6960",
       "title": "Western Veil Nebula",
-      "checkoutUrl": null,
-      "sampleApproved": false
+      "captureFile": "Stacked_277_NGC 6960_10.0s_LP_20260922-221229_cleaned.jpg",
+      "previewUrl": "/prints/western-veil-nebula.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "e1fde0e0d185e68eb8da33a2ac033760ecb347140902e01d0b3fc3b0c3d9035f",
+      "sourceSha256": "1ebb550de9b47c16e6b436a7a06e99a124e6111e1276e463a37351d1e275f530",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/western-veil-nebula-ngc-6960-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "384dcdc7-6aee-4a8b-ad3e-f6693cd9eb71",
+      "fourthwallVariantId": "45dccb4a-c066-47e2-ba97-6c27e0da5767",
+      "fourthwallSlug": "western-veil-nebula-ngc-6960-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "e1fde0e0d185e68eb8da33a2ac033760ecb347140902e01d0b3fc3b0c3d9035f",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "whirlpool-galaxy-m-51",
+      "object": "M 51",
+      "title": "Whirlpool Galaxy",
+      "captureFile": "Stacked_419_M 51_10.0s_IRCUT_20260728-233258_hand_processed.png",
+      "previewUrl": "/prints/whirlpool-galaxy-m-51.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "7b04cce495fa1856e8f3c1705e600619cd065d695665e64d6ef7aee309df1b0a",
+      "sourceSha256": "26d1257781a0cb20e68146b35c6bb5fbf9cb35afc15c436e6d836e16bafe45a3",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/whirlpool-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "033b661b-d112-4c6d-8402-58382f2026f0",
+      "fourthwallVariantId": "de6908ad-e559-4fc4-ba0f-b7e250ae7e9b",
+      "fourthwallSlug": "whirlpool-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "7b04cce495fa1856e8f3c1705e600619cd065d695665e64d6ef7aee309df1b0a",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "andromeda-galaxy-mosaic-m-31-mosaic",
+      "object": "M 31 \u00b7 Mosaic",
+      "title": "Andromeda Galaxy \u00b7 Mosaic",
+      "captureFile": "Stacked_61_mosaic_M 31_10.0s_IRCUT_20251223-200629_hand_processed.png",
+      "previewUrl": "/prints/andromeda-galaxy-mosaic-m-31-mosaic.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "99fb9ab62f0d9a7f94d6c4a78079d636d862ab8a1c2d640754851c1186e5627d",
+      "sourceSha256": "f42c81876b3a358c656036cc025a7eaafe52c4fc69a71924206ea0d2999105a8",
+      "sourcePixels": [
+        373,
+        664
+      ],
+      "nativeDpiAtPrintWidth": 31.1,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/andromeda-galaxy-mosaic-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "71730b81-5007-4523-b073-da1c4824cdfe",
+      "fourthwallVariantId": "e4bb156a-d6be-4988-adcd-fa16adb15ffa",
+      "fourthwallSlug": "andromeda-galaxy-mosaic-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "99fb9ab62f0d9a7f94d6c4a78079d636d862ab8a1c2d640754851c1186e5627d",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "spindle-galaxy-m-102",
+      "object": "M 102",
+      "title": "Spindle Galaxy",
+      "captureFile": "Stacked_62_M 102_10.0s_IRCUT_20250606-223915_cleaned.jpg",
+      "previewUrl": "/prints/spindle-galaxy-m-102.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "55bbad39cb16e8c12e7bd0c32d43dcb83e2e307b860b22c07663512e3f8e337b",
+      "sourceSha256": "998b16bdc1221d56da71ab0b997246983e46eb9b43472c9c9d4428e05f8efb50",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/spindle-galaxy-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "7690977b-e4aa-4ef5-8113-0485e246326d",
+      "fourthwallVariantId": "0307bdc6-9fc0-481d-a021-0fdc5dbe7afd",
+      "fourthwallSlug": "spindle-galaxy-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "55bbad39cb16e8c12e7bd0c32d43dcb83e2e307b860b22c07663512e3f8e337b",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "ngc-7331-ngc-7331",
+      "object": "NGC 7331",
+      "title": "NGC 7331",
+      "captureFile": "Stacked_63_NGC 7331_10.0s_IRCUT_20251009-220208_cleaned.jpg",
+      "previewUrl": "/prints/ngc-7331-ngc-7331.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "1ecacf53408c96b7546375a68732048ac49e05e852cf59e64974375c2d58e2ba",
+      "sourceSha256": "e6c9b8eaa0ad906420c68e13d184e1fcdf60fa8e5875ab6a1d1d2a780ff19bec",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/ngc-7331-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "418ee73a-7241-4bb6-8e9d-93c45abdc1f2",
+      "fourthwallVariantId": "388524f1-615a-4797-a6dd-656f2ea74790",
+      "fourthwallSlug": "ngc-7331-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "1ecacf53408c96b7546375a68732048ac49e05e852cf59e64974375c2d58e2ba",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "butterfly-nebula-ic-1318b",
+      "object": "IC 1318B",
+      "title": "Butterfly Nebula",
+      "captureFile": "Stacked_64_IC 1318B_10.0s_LP_20250925-203715_cleaned.jpg",
+      "previewUrl": "/prints/butterfly-nebula-ic-1318b.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "45dc9833990f36679792ea4e7e31647270515db0ce6ba5273ff70e43230fc8c8",
+      "sourceSha256": "bca736577a7a1045ef9745af2baa8639fd1cb44585aede96bad57f79f314714d",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/butterfly-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "57e7dcbb-02c1-4442-9d5d-eaf1d535c861",
+      "fourthwallVariantId": "eb87ad7a-d885-4006-ae18-59c52b45cee0",
+      "fourthwallSlug": "butterfly-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "45dc9833990f36679792ea4e7e31647270515db0ce6ba5273ff70e43230fc8c8",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "great-hercules-cluster-m-13",
+      "object": "M 13",
+      "title": "Great Hercules Cluster",
+      "captureFile": "Stacked_71_M 13_10.0s_IRCUT_20260724-223913_cleaned.jpg",
+      "previewUrl": "/prints/great-hercules-cluster-m-13.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "6ce33e6f0d403888ef58c9706e04c3c1815359aee96f87700cd7ba6dc3b3d84e",
+      "sourceSha256": "6302442feb5e5172a1e3134ea0fbc5a08fae0ffd9a337b2e24623a3c658bc534",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/great-hercules-cluster-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "94790350-4d60-480a-9a37-1617e2b625c9",
+      "fourthwallVariantId": "66421cca-82e4-442e-899c-738f0658633e",
+      "fourthwallSlug": "great-hercules-cluster-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "6ce33e6f0d403888ef58c9706e04c3c1815359aee96f87700cd7ba6dc3b3d84e",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "messier-3-m-3",
+      "object": "M 3",
+      "title": "Messier 3",
+      "captureFile": "Stacked_76_M 3_10.0s_IRCUT_20250717-224225_cleaned.jpg",
+      "previewUrl": "/prints/messier-3-m-3.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "3874b48b7f592e3a7c3971ff4afd274f214cf1cefbfea668fed6e4416e32d2a4",
+      "sourceSha256": "3fee430991938ae5944a9b6326f394284fd3a5b8cb43d4a5774c0f82c401cd20",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/messier-3-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "5f9bd063-50c5-491d-b262-473fd3ae1591",
+      "fourthwallVariantId": "fd6648dc-0c37-4924-b85e-0bf15f70fde6",
+      "fourthwallSlug": "messier-3-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "3874b48b7f592e3a7c3971ff4afd274f214cf1cefbfea668fed6e4416e32d2a4",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "cooling-tower-cluster-m-29",
+      "object": "M 29",
+      "title": "Cooling Tower Cluster",
+      "captureFile": "Stacked_79_M 29_10.0s_IRCUT_20250925-225032_cleaned.jpg",
+      "previewUrl": "/prints/cooling-tower-cluster-m-29.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "29a9c50d6b1177f4b73e3325f88198a18d87129d868e3a56ad9d1e852329107d",
+      "sourceSha256": "48880010abca47ba1f595bc3c9a6eb17f8a0cee7a551d6391016f36e91aa3520",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/cooling-tower-cluster-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "e04564b5-5414-4262-a707-b14e9fd0bf96",
+      "fourthwallVariantId": "b0f0f43d-9b44-4b29-84d0-ac8cbcf36856",
+      "fourthwallSlug": "cooling-tower-cluster-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "29a9c50d6b1177f4b73e3325f88198a18d87129d868e3a56ad9d1e852329107d",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
+    },
+    {
+      "id": "owl-nebula-m-97",
+      "object": "M 97",
+      "title": "Owl Nebula",
+      "captureFile": "Stacked_86_M 97_10.0s_LP_20250524-232111_cleaned.jpg",
+      "previewUrl": "/prints/owl-nebula-m-97.jpg",
+      "layout": "edge-to-edge-v1",
+      "artworkSha256": "f134fa370e9818ebcd454ca7efac8656287388ed51b63c9c77ab61997b58a1e4",
+      "sourceSha256": "f881bc392333b97d89e4d01785e5fbf8d8ebff949f4ff4786ef6787aba6279e3",
+      "sourcePixels": [
+        1080,
+        1920
+      ],
+      "nativeDpiAtPrintWidth": 90,
+      "checkoutUrl": "https://brian-wsn-shop.fourthwall.com/products/owl-nebula-northern-michigan",
+      "sampleApproved": false,
+      "artworkApproved": true,
+      "productPublished": true,
+      "fourthwallProductId": "2250be6b-3121-4a59-9bea-2895cbb96c03",
+      "fourthwallVariantId": "26dc3bd9-79d4-429f-a0d1-c6c9bdf0b606",
+      "fourthwallSlug": "owl-nebula-northern-michigan",
+      "salesApproval": {
+        "approved": true,
+        "approvedAt": "2026-09-30",
+        "artworkSha256": "f134fa370e9818ebcd454ca7efac8656287388ed51b63c9c77ab61997b58a1e4",
+        "reason": "Owner authorized public sales for the complete collection before physical sample review for the October 1 demo."
+      }
     }
-  ]
+  ],
+  "storefrontOrigin": "https://brian-wsn-shop.fourthwall.com"
 }

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { comparisons, type CaptureComparison } from "./comparisons";
-import { printProductForObject } from "./print-catalog";
+import { printProductForCapture } from "./print-catalog";
+import { captureRotation } from "./capture-orientation.mjs";
 
 const imageFiles = [
   "Stacked_101_IC 443_10.0s_LP_20260303-213610_cleaned.jpg",
@@ -241,6 +242,7 @@ export default function Home() {
   const comparison = capture.comparison;
   const isNightSkyAI = comparison?.curatedDefault === "nightskyai";
   const activeImage = curatedImage(capture);
+  const activeRotation = captureRotation(capture.file, isNightSkyAI ? "nightskyai" : "seestar");
   const activeFrames = comparison && isNightSkyAI ? comparison.nightskyaiFrames : capture.frames;
   const activeProvenance = comparison && isNightSkyAI
     ? "NightSkyAI · selected full-field stack"
@@ -248,7 +250,7 @@ export default function Home() {
   const activeRatio = comparison && isNightSkyAI
     ? comparison.nightskyaiFullFieldRatio
     : capture.imageRatio;
-  const printProduct = printProductForObject(capture.object);
+  const printProduct = printProductForCapture(capture.file);
 
   const move = useCallback((delta: number) => {
     if (!hasStarted || phase !== "focused") return;
@@ -403,7 +405,7 @@ export default function Home() {
 
           {hasStarted && (
             <figure className="capture-frame" key={`${capture.file}-${phase}`}>
-              <img src={publicImageUrl(activeImage)} alt={`${capture.title}, ${isNightSkyAI ? "NightSkyAI restack" : "gallery edit"}`} />
+              <img src={publicImageUrl(activeImage)} style={activeRotation ? { transform: `rotate(${activeRotation}deg)` } : undefined} alt={`${capture.title}, ${isNightSkyAI ? "NightSkyAI restack" : "gallery edit"}`} />
               <span className="photo-watermark" aria-hidden="true"><b>Deep Space Field Notes</b><small>© Brian Jean</small></span>
               <figcaption>
                 <span className="catalog-line"><i />{capture.object}</span>
@@ -434,13 +436,11 @@ export default function Home() {
               {printProduct && (
                 <a
                   className="print-link"
-                  href={printProduct.checkoutUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Buy a ${printProduct.sizeLabel} of ${capture.title}`}
+                  href={`/prints/${printProduct.id}`}
+                  aria-label={`View the ${printProduct.sizeLabel} of ${capture.title}`}
                 >
-                  <span>Available as a {printProduct.sizeLabel}</span>
-                  <strong>Buy this print</strong>
+                  <span>{printProduct.sizeLabel}{printProduct.checkoutUrl ? ` · ${printProduct.priceLabel}` : " · Coming soon"}</span>
+                  <strong>{printProduct.checkoutUrl ? "Buy this print" : "Preview this print"}</strong>
                 </a>
               )}
             </article>

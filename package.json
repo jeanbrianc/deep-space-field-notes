@@ -12,7 +12,8 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "comparisons:sync": "node scripts/sync-comparisons.mjs",
-    "prints:prepare": "node scripts/prepare-print-products.mjs",
+    "prints:prepare": "node scripts/prepare-print-collection.mjs",
+    "prints:prepare-legacy": "node scripts/prepare-print-products.mjs",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

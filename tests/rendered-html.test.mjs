@@ -148,31 +148,23 @@ test("public comparisons preserve full-field sources and ship verified Gallery-a
   }
 });
 
-test("print catalog remains hidden until a physical sample and checkout are approved", async () => {
+test("every gallery capture has its own poster preview", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
-  const registry = await readFile(new URL("app/print-catalog.ts", root), "utf8");
-  const script = await readFile(new URL("scripts/prepare-print-products.mjs", root), "utf8");
   const catalog = JSON.parse(await readFile(new URL("print_products/catalog.json", root), "utf8"));
-
-  assert.equal(catalog.provider, "fourthwall");
-  assert.deepEqual(
-    [catalog.product.widthPx, catalog.product.heightPx, catalog.product.density],
-    [3600, 5400, 300],
-  );
-  assert.deepEqual(
-    catalog.products.map((product) => product.object),
-    ["M 31", "M 42", "NGC 6992", "NGC 6960"],
-  );
-  assert.ok(catalog.products.every((product) => product.checkoutUrl === null));
-  assert.ok(catalog.products.every((product) => product.sampleApproved === false));
-  assert.match(registry, /product\.sampleApproved/);
-  assert.match(registry, /url\.protocol === "https:"/);
-  assert.match(page, /printProductForObject\(capture\.object\)/);
-  assert.match(page, /printProduct &&/);
+  const files = [...new Set(page.match(/Stacked_[^"\n]+_(?:cleaned|hand_processed)\.(?:jpg|png)/g) ?? [])];
+  assert.equal(catalog.products.length, 33);
+  assert.equal(new Set(catalog.products.map(p => p.id)).size, 33);
+  assert.deepEqual(new Set(catalog.products.map(p => p.captureFile)), new Set(files));
+  assert.equal(catalog.products.filter(p => p.object.startsWith("M 31")).length, 2);
+  assert.deepEqual([catalog.product.widthPx, catalog.product.heightPx, catalog.product.density], [3600,5400,300]);
+  assert.match(page, /printProductForCapture\(capture.file\)/);
   assert.match(page, /Buy this print/);
-  assert.match(page, /target="_blank"/);
-  assert.match(page, /rel="noopener noreferrer"/);
-  assert.match(script, /fit: "inside"/);
-  assert.match(script, /widthPx !== 3600 \|\| heightPx !== 5400 \|\| density !== 300/);
-  assert.match(script, /alignment\?\.sourceFilename/);
+  for (const product of catalog.products) {
+    assert.match(product.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    const previewUrl = new URL(product.previewUrl, 'https://gallery.invalid');
+    assert.equal(previewUrl.pathname, `/prints/${product.id}.jpg`);
+    if (previewUrl.search) assert.equal(previewUrl.searchParams.get('v'), product.artworkSha256.slice(0,12));
+    const preview = await readFile(new URL(`public${previewUrl.pathname}`, root));
+    assert.ok(preview.length > 10000);
+  }
 });

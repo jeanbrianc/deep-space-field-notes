@@ -425,6 +425,20 @@ button { font: inherit; }
   line-height: 1.55;
   letter-spacing: .08em;
 }
+.print-page { max-width: 1200px; margin: 0 auto; padding: 36px 24px 64px; color: var(--ivory); }
+.print-back { color: var(--amber); text-decoration: none; font-size: 14px; }
+.print-back:focus-visible { outline: 2px solid var(--amber); outline-offset: 6px; }
+.print-detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 56px; margin-top: 32px; align-items: center; }
+.poster-preview { margin: 0; background: black; box-shadow: 0 20px 80px #0009; }
+.poster-preview img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 3; }
+.print-copy h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(32px, 4vw, 52px); line-height: 1.15; margin: 16px 0; }
+.print-copy p { color: #b3b6ae; line-height: 1.75; }
+.print-copy .print-size { color: var(--amber); }
+.print-copy .print-disclosure { font-size: 13px; }
+.print-coming-soon { margin-top: 28px; padding: 20px; border: 1px solid #d9ad6d44; background: #080b0b; }
+.print-coming-soon strong { color: var(--amber); }
+.print-coming-soon p { margin-bottom: 0; }
+@media (max-width: 720px) { .print-detail { grid-template-columns: 1fr; gap: 24px; } .print-page { padding: 24px 18px 48px; } }
 .print-link {
   margin-top: 24px;
   min-height: 66px;

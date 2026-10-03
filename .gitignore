@@ -44,3 +44,6 @@ next-env.d.ts
 /outputs/
 /work/
 /print_products/masters/
+
+# Private product strategy and shop research; never publish in the public source repository.
+/research/
