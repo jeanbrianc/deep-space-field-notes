@@ -672,3 +672,11 @@ button { font: inherit; }
   .capture-nav { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   .awaiting-message span { display: block; margin: 0 0 5px; }
 }
+
+.capture-sharing { margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.capture-sharing a, .capture-sharing button { color: #d8e7ed; font: inherit; font-size: .8rem; }
+.capture-sharing button { background: #14222d; border: 1px solid #597480; border-radius: .35rem; padding: .55rem .7rem; cursor: pointer; }
+.capture-sharing p { flex-basis: 100%; font-size: .8rem; margin: 0; }
+.capture-sharing label { width: 100%; font-size: .8rem; }
+.capture-sharing input { display: block; width: 100%; min-width: 0; color: #e9f4fa; background: #101b25; border: 1px solid #597480; padding: .5rem; }
+.capture-sharing :focus-visible { outline: 2px solid #a7d7ed; outline-offset: 3px; }

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { captureIdForFile, captureUrl } from '../../capture-links.mjs';
 import { printProductForId } from '../../print-catalog';
 
 export default async function PrintPage({ params }: { params: Promise<{ id: string }> }) {
@@ -7,7 +8,7 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
   const product = printProductForId(id);
   if (!product) notFound();
   return <main className="print-page">
-    <Link className="print-back" href="/">← Back to the observatory</Link>
+    <Link className="print-back" href={captureUrl(captureIdForFile(product.captureFile))}>← Back to the observatory</Link>
     <div className="print-detail">
       <figure className="poster-preview"><img src={product.previewUrl} alt={`${product.title} poster with black field-note text panels`} /></figure>
       <section className="print-copy">
