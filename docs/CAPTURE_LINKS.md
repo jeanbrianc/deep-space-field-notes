@@ -25,3 +25,7 @@ If Playwright is installed outside the project, set `PLAYWRIGHT_MODULE` to its m
 The runner checks every capture's selected source, direct load, reload, matching preview and exact print return at desktop/phone sizes; history, fresh tabs, rapid clicks, clipboard success/denial, invalid inputs and keyboard/touch isolation; and Back during normal-motion travel before and after URL commit. It fails on page errors and checks mobile horizontal overflow. Clipboard outcomes are deterministic injected browser fixtures, not a claim about every browser's permission UI.
 
 The source baseline has five existing standalone `tsc --noEmit` errors: DOM fallback narrowing in the unchanged IntersectionObserver fallback and missing Cloudflare runtime declarations. The same errors reproduce on reconciliation head `f8ef6c977b27bd74276832a67b197f2ffe81638f`. Production build and project lint remain the existing required checks; this navigation change introduces no additional standalone type errors.
+
+## Collection discovery
+
+The observatory header’s Browse captures and Browse prints entries use these same permanent capture URLs and exact print-return mappings. See [Capture and print browser](CAPTURE_BROWSER.md) for the searchable index, verified-print filter, modal focus behavior and bounded thumbnails.

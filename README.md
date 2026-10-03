@@ -21,6 +21,8 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 - Explains what the viewer is seeing in approachable field notes.
 - Preserves useful observing context, including frame count, exposure, filter, date, and processing method.
 - Supports buttons, arrow keys, and mobile swipes for a natural gallery experience.
+- Adds a searchable capture index and verified-print filter from the
+  observatory header, with compact selected-image thumbnails.
 - Gives every capture a permanent shareable URL, with browser history and exact
   observation context when returning from its poster preview.
 - Lands directly in the empty observatory, where selecting the telescope opens
@@ -32,6 +34,9 @@ Each stop pairs one carefully selected image with its place in the sky, capture 
 
 See [Capture links and navigation](docs/CAPTURE_LINKS.md) for the URL contract,
 clipboard fallback, exact print-return mapping, and browser regression checks.
+
+See [Capture and print browser](docs/CAPTURE_BROWSER.md) for search aliases,
+print availability, keyboard access, thumbnail generation and discovery QA.
 
 The current collection includes **33 observations** spanning galaxies, nebulae, supernova remnants, and globular clusters.
 

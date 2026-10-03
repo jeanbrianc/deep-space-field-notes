@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { comparisons, type CaptureComparison } from "./comparisons";
-import { printProductForCapture } from "./print-catalog";
+import CaptureBrowser from "./capture-browser";
+import { printPreviewForCapture } from "./capture-search.mjs";
+import { printProducts, printProductForCapture } from "./print-catalog";
 import { captureIdForFile, captureFileForId, captureUrl, captureIdFromSearch } from "./capture-links.mjs";
 import { captureRotation } from "./capture-orientation.mjs";
 
@@ -185,6 +187,17 @@ function curatedImage(capture: Capture) {
   if (comparison?.curatedDefault === "nightskyai") return comparison.nightskyaiFullFieldImage;
   return comparison?.seestarImage ?? capture.file;
 }
+
+const browserCaptures = captures.map(capture => ({
+  id: captureIdForFile(capture.file)!, file: capture.file, title: capture.title,
+  object: capture.object,
+  date: capture.comparison?.curatedDefault === "nightskyai" ? formatObservationSpan(capture.comparison) : capture.date,
+  exposure: capture.exposure,
+  frames: capture.comparison?.curatedDefault === "nightskyai" ? capture.comparison.nightskyaiFrames : capture.frames,
+  source: curatedImage(capture),
+  rotation: captureRotation(capture.file, capture.comparison?.curatedDefault === "nightskyai" ? "nightskyai" : "seestar"),
+  printPreviewUrl: printPreviewForCapture(capture.file, printProducts),
+}));
 
 function skyPoint(capture: Capture) {
   if (capture.raDeg === null || capture.decDeg === null) return { x: 50, y: 35 };
@@ -393,7 +406,7 @@ export default function Home() {
     const onKey = (event: KeyboardEvent) => {
       if (event.repeat || !galleryInView) return;
       const target = event.target instanceof HTMLElement ? event.target : null;
-      if (target?.closest("button, a, input, select, textarea, [contenteditable='true']")) return;
+      if (target?.closest("dialog, button, a, input, select, textarea, [contenteditable='true']")) return;
       if (event.key === "ArrowLeft") move(-1);
       if (event.key === "ArrowRight") move(1);
     };
@@ -427,7 +440,7 @@ export default function Home() {
         className={`gallery-shell${galleryInView ? " gallery-is-visible" : ""}${hasStarted ? "" : " gallery-awaiting-start"}`}
         onTouchStart={(event) => {
           const target = event.target instanceof HTMLElement ? event.target : null;
-          if (!hasStarted || target?.closest("button, a, input, select, textarea, [contenteditable='true']")) return;
+          if (!hasStarted || target?.closest("dialog, button, a, input, select, textarea, [contenteditable='true']")) return;
           touchPoint.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }}
         onTouchEnd={(event) => {
@@ -445,6 +458,12 @@ export default function Home() {
         <header className="site-header">
           <div className="brand"><span className="brand-mark" />Deep Space Field Notes</div>
           <div className="collection-count">Observatory Archive · {captures.length} Captures · 50+ Frames</div>
+          <CaptureBrowser captures={browserCaptures} ready={navigationReady} onOpen={() => {
+            navigationGeneration.current += 1;
+            window.clearTimeout(animationTimer.current);
+            navigationBusy.current = false;
+            setOriginIndex(index); setTargetIndex(index); setPhase("focused");
+          }} />
         </header>
 
         <section className={`portal-stage phase-${phase}${hasStarted ? "" : " stage-idle"}`} style={skyStyle} aria-busy={hasStarted && phase !== "focused"}>
