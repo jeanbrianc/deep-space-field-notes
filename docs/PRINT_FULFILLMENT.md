@@ -61,3 +61,5 @@ Clear the product's `productPublished` or `artworkApproved`, or remove its check
 ## Returning from a poster preview
 
 The preview’s observatory link resolves the permanent capture identity from the exact catalog capture filename, returning to `/?capture=<id>`. Query parameters cannot change that destination. Existing poster IDs and supplier links remain unchanged. See [Capture links and navigation](CAPTURE_LINKS.md) for the identity contract and regression checks.
+
+The header’s Browse prints view filters the existing `printProducts` projection by its guarded checkout availability and opens matching preview pages. It grants no new artwork, price or launch approval. See [Capture and print browser](CAPTURE_BROWSER.md).
